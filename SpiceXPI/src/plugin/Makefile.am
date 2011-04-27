@@ -1,0 +1,79 @@
+NULL =
+
+EXTENSION_ID = SpiceXPI@redhat.com
+FIREFOX_APPID = {ec8030f7-c20a-464f-9b0e-13a3a9e97384}
+extensiondir=$(libdir)/mozilla
+
+INCLUDES =                           \
+	$(XUL_CFLAGS)                    \
+	-I$(top_srcdir)/common           \
+	-I..                             \
+	-I$(top_srcdir)/red	             \
+	-I$(top_srcdir)/red/$(red_target)\
+	$(QCAIRO_CFLAGS)                 \
+	$(LOG4CPP_CFLAGS)                \
+	-DCAIRO_CANVAS_ACCESS_TEST       \
+	-DCAIRO_CANVAS_CACHE             \
+	-DCAIRO_CANVAS_NO_CHUNKS         \
+	-DXP_UNIX                        \
+	-DMOZILLA_INTERNAL_API           \
+	$(NULL)
+
+plugindir=$(extensiondir)/plugins
+
+plugin_LTLIBRARIES = libnsISpicec.la
+
+libnsISpicec_la_LDFLAGS = -avoid-version -module
+libnsISpicec_la_CPPFLAGS =           \
+	$(AM_CPPFLAGS)                   \
+	-I $(XUL_INCLUDEDIR)             \
+	-I $(XUL_INCLUDEDIR)/dom         \
+	-I $(XUL_INCLUDEDIR)/necko       \
+	-I $(XUL_INCLUDEDIR)/plugin      \
+	-I $(XUL_INCLUDEDIR)/string      \
+	$(NULL)
+
+libnsISpicec_la_LIBADD =             \
+	$(QCAIRO_LIBS)                   \
+	$(LOG4CPP_LIBS)                  \
+	$(XUL_LIBS)                      \
+	$(NULL)
+
+libnsISpicec_la_SOURCES =            \
+	np_entry.cpp                     \
+	npn_gate.cpp                     \
+	npp_gate.cpp                     \
+	nsScriptablePeer.h               \
+	nsScriptablePeer.cpp             \
+	nsScriptablePeerBase.h           \
+	nsScriptablePeerBase.cpp         \
+	pluginbase.h                     \
+	pluginbase.cpp                   \
+	plugin.h                         \
+	plugin.cpp                       \
+	nsISpicec.h                      \
+	controller.cpp                   \
+	debug.h                          \
+	controller.h                     \
+	controller_prot.h                \
+	../../../common/rederrorcodes.h  \
+	npplat.h                         \
+	$(NULL)
+
+BUILT_SOURCEFILES =                  \
+	nsISpicec.h                      \
+	nsISpicec.xpt                    \
+	$(NULL)
+
+nsISpicec.h: nsISpicec.idl
+	/usr/lib64/xulrunner-1.9.2/xpidl -m header -I /usr/share/idl/xulrunner-sdk-1.9.2 $<
+
+nsISpicec.xpt: nsISpicec.idl
+	/usr/lib64/xulrunner-1.9.2/xpidl -m typelib -I /usr/share/idl/xulrunner-sdk-1.9.2 $<
+
+BUILT_SOURCES = $(BUILT_SOURCEFILES)
+
+MAINTAINERCLEANFILES =               \
+	$(BUILT_SOURCEFILES)
+
+EXTRA_DIST = nsISpicec.xpt
