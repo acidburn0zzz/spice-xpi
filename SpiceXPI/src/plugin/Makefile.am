@@ -1,8 +1,9 @@
-NULL =
-
-EXTENSION_ID = SpiceXPI@redhat.com
-FIREFOX_APPID = {ec8030f7-c20a-464f-9b0e-13a3a9e97384}
-extensiondir=$(libdir)/mozilla
+NULL            =
+EXTENSION_ID    = SpiceXPI@redhat.com
+FIREFOX_APPID   = {ec8030f7-c20a-464f-9b0e-13a3a9e97384}
+extensiondir    = $(libdir)/mozilla
+XPIDL_BIN       = `pkg-config --variable=libdir libxul`/xpidl
+SDK_INCLUDE_DIR = `pkg-config --variable=idldir libxul`
 
 INCLUDES =                           \
 	$(XUL_CFLAGS)                    \
@@ -57,6 +58,8 @@ libnsISpicec_la_SOURCES =            \
 	controller.h                     \
 	controller_prot.h                \
 	../../../common/rederrorcodes.h  \
+	../../../common/common.h         \
+	nsISpicec.idl                    \
 	npplat.h                         \
 	$(NULL)
 
@@ -66,10 +69,10 @@ BUILT_SOURCEFILES =                  \
 	$(NULL)
 
 nsISpicec.h: nsISpicec.idl
-	/usr/lib64/xulrunner-1.9.2/xpidl -m header -I /usr/share/idl/xulrunner-sdk-1.9.2 $<
+	$(XPIDL_BIN) -m header -I $(SDK_INCLUDE_DIR) $<
 
 nsISpicec.xpt: nsISpicec.idl
-	/usr/lib64/xulrunner-1.9.2/xpidl -m typelib -I /usr/share/idl/xulrunner-sdk-1.9.2 $<
+	$(XPIDL_BIN) -m typelib -I $(SDK_INCLUDE_DIR) $<
 
 BUILT_SOURCES = $(BUILT_SOURCEFILES)
 
