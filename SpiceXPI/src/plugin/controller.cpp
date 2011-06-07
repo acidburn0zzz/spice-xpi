@@ -121,11 +121,7 @@ int SpiceController::Connect()
 
 int SpiceController::Connect(const int nRetries)
 {
-    // arent we foolish?
-    if (nRetries < 0)
-        return -1;
-
-    int rc;
+    int rc = -1;
     int sleep_time = 0;
 
     // try to connect for specified count
