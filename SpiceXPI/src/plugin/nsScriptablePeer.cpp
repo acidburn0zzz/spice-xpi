@@ -175,7 +175,7 @@ bool ScriptablePluginObject::GetProperty(NPIdentifier name, NPVariant *result)
     VOID_TO_NPVARIANT(*result);
 
     if (!m_plugin)
-        return true;
+        return false;
 
     if (name == m_id_host_ip)
         STRINGZ_TO_NPVARIANT(m_plugin->GetHostIP(), *result);

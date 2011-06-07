@@ -124,8 +124,6 @@ static NPClass s##_class##_NPClass = {                                        \
 #define GET_NPOBJECT_CLASS(_class) &s##_class##_NPClass
 
 NPObject *AllocateScriptablePluginObject(NPP npp, NPClass *aClass);
-DECLARE_NPOBJECT_CLASS_WITH_BASE(ScriptablePluginObject,
-                                 AllocateScriptablePluginObject);
 
 //void NPIdentifiersInit();
 

@@ -86,6 +86,9 @@ static NS_DEFINE_CID(kPluginManagerCID, NS_PLUGINMANAGER_CID);
 #include "plugin.h"
 #include "nsScriptablePeer.h"
 
+DECLARE_NPOBJECT_CLASS_WITH_BASE(ScriptablePluginObject,
+                                 AllocateScriptablePluginObject);
+
 namespace {
     const std::string ver(PACKAGE_VERSION);
     const std::string PLUGIN_NAME = "Spice Firefox Plugin " + ver;
@@ -201,8 +204,6 @@ nsPluginInstance::nsPluginInstance(NPP aInstance):
     // create temporary directory in /tmp
     char tmp_dir[] = "/tmp/spicec-XXXXXX";
     m_tmp_dir = mkdtemp(tmp_dir);
-
-    LOGGER_SECTION("spice.plugin");
 
     // configure log4cpp
     std::ifstream log_init(LOGGER_CONFIG.c_str());
@@ -467,6 +468,7 @@ unsigned short nsPluginInstance::GetUsbListenPort() const
     // this method exists due to RHEVM 2.2
     // and should be removed some time in future,
     // when fixed in RHEVM
+    return 0;
 }
 
 void nsPluginInstance::SetUsbListenPort(unsigned short aUsbPort)
@@ -482,6 +484,7 @@ PRBool nsPluginInstance::GetUsbAutoShare() const
     // this method exists due to RHEVM 2.2
     // and should be removed some time in future,
     // when fixed in RHEVM
+    return false;
 }
 
 void nsPluginInstance::SetUsbAutoShare(PRBool aUsbAutoShare)

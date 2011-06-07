@@ -85,8 +85,6 @@ static inline std::string pretty_func_to_func_name(const std::string& f_name)
 #  define FUNC_NAME __FUNCTION__
 #endif
 
-#define LOGGER_SECTION(section) LOG4CPP_LOGGER(section)
-
 LOG4CPP_LOGGER("spice")
 
 #define LOG(func, message) {                 \

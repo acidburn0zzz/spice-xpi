@@ -148,9 +148,9 @@ void SpiceController::Disconnect()
 
 uint32_t SpiceController::Write(const void *lpBuffer, uint32_t nBytesToWrite)
 {
-    int len = send(m_client_socket, lpBuffer, nBytesToWrite, 0);
+    ssize_t len = send(m_client_socket, lpBuffer, nBytesToWrite, 0);
 
-    if (len != nBytesToWrite)
+    if (len != (ssize_t)nBytesToWrite)
     {
         LOG_WARN("send error, bytes to write = " << nBytesToWrite <<
                  ", bytes actually written = " << len << ", errno = " << errno);

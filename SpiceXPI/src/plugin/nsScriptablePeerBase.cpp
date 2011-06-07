@@ -173,7 +173,7 @@ bool ScriptablePluginObjectBase::_HasProperty(NPObject * npobj, NPIdentifier nam
 bool ScriptablePluginObjectBase::_GetProperty(NPObject *npobj, NPIdentifier name,
                                               NPVariant *result)
 {
-    static_cast<ScriptablePluginObjectBase *>(npobj)->GetProperty(name, result);
+    return static_cast<ScriptablePluginObjectBase *>(npobj)->GetProperty(name, result);
 }
 
 // static
