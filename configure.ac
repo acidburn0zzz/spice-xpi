@@ -1,5 +1,5 @@
 AC_PREREQ([2.57])
-AC_INIT(spice-xpi, [2.5], [], spice-xpi)
+AC_INIT(spice-xpi, [2.5.2pre], [], spice-xpi)
 
 AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER([config.h])
@@ -104,11 +104,6 @@ PKG_CHECK_MODULES(LOG4CPP, log4cpp)
 AC_SUBST(LOG4CPP_CFLAGS)
 AC_SUBST(LOG4CPP_LIBS)
 SPICE_REQUIRES+=" log4cpp"
-
-PKG_CHECK_MODULES(X11, x11)
-AC_SUBST(X11_CFLAGS)
-AC_SUBST(X11_LIBS)
-SPICE_REQUIRES+=" x11"
 
 # Add parameter for (partial) static linkage of spice client.
 # this is used to achive single binary package for all (?) distros.
