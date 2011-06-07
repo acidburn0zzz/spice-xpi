@@ -89,33 +89,33 @@ static inline std::string pretty_func_to_func_name(const std::string& f_name)
 
 LOG4CPP_LOGGER("spice")
 
-#define LOG(type, message) {                 \
+#define LOG(func, message) {                 \
     std::ostringstream os;                   \
     os << FUNC_NAME;                         \
     os << ": ";                              \
     os << message;                           \
-    LOG4CPP_DEBUG(logger, os.str().c_str()); \
+    func(logger, os.str().c_str());          \
 }
 
 // Used to log just about everything that might be useful (or not).
-#define LOG_TRACE(message) LOG(DEBUG, message)
+#define LOG_TRACE(message) LOG(LOG4CPP_DEBUG, message)
 
 // Used to log debug information which doesn't inflate the log with useless
 // and repeated messages.
-#define LOG_DEBUG(message) LOG(DEBUG, message)
+#define LOG_DEBUG(message) LOG(LOG4CPP_DEBUG, message)
 
 // Used to log the program flow.
-#define LOG_INFO(message) LOG(INFO, message)
+#define LOG_INFO(message) LOG(LOG4CPP_INFO, message)
 
 // Used to log errors which are handled by the program.
-#define LOG_WARN(message) LOG(WARN, message)
+#define LOG_WARN(message) LOG(LOG4CPP_WARN, message)
 
 // Used to log errors that can't be handled by the program.
-#define LOG_ERROR(message) LOG(ERROR, message)
+#define LOG_ERROR(message) LOG(LOG4CPP_ERROR, message)
 
 // Used to log errors that can't happen (even if they do!).
 #define LOG_FATAL(message) {     \
-    LOG(EMERG, message);         \
+    LOG(LOG4CPP_EMERG, message); \
     ON_PANIC();                  \
 }
 
