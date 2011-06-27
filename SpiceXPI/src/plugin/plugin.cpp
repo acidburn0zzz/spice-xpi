@@ -105,23 +105,6 @@ namespace {
 
         return dest;
     }
-
-    std::string getSpicecPath()
-    {
-        std::set<std::string> names;
-        names.insert("/usr/libexec/spicec");
-        names.insert("/usr/bin/spicec");
-
-        struct stat file;
-        std::set<std::string>::iterator it;
-        for (it = names.begin(); it != names.end(); ++it)
-        {
-            if (stat(it->c_str(), &file) == 0)
-                return *it;
-        }
-
-        return std::string();
-    }
 }
 
 char *NPP_GetMIMEDescription(void)
@@ -564,18 +547,14 @@ void nsPluginInstance::Connect()
     LOG_DEBUG(" m_child_pid = " << m_child_pid);
     if (m_child_pid == 0)
     {
-        std::string spicec_path = getSpicecPath();
-        if (spicec_path.empty())
-        {
-            LOG_ERROR("ERROR failed to find spicec to run");
-            exit(1);
-        }
+        execl("/usr/libexec/spice-xpi-client", "/usr/libexec/spice-xpi-client", NULL);
+        LOG_ERROR("ERROR failed to run spice-xpi-client");
 
-        // run the controller
-        execl(spicec_path.c_str(), spicec_path.c_str(), "--controller", NULL);
+        // TODO: temporary fallback for backward compatibility
+        execl("/usr/bin/spicec", "/usr/bin/spicec", "--controller", NULL);
+        LOG_ERROR("ERROR failed to run spicec fallback");
 
-        // failed to connect?
-        exit(0);
+        exit(1);
     }
     else
     {
