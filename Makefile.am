@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = SpiceXPI
+SUBDIRS = SpiceXPI data
 
 EXTRA_DIST = \
     m4
