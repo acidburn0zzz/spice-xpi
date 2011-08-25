@@ -50,6 +50,11 @@
 #include <npapi.h>
 #include <npruntime.h>
 
+extern "C" {
+#include <pthread.h>
+#include <signal.h>
+}
+
 #include "pluginbase.h"
 #include "controller.h"
 #include "common.h"
@@ -154,16 +159,17 @@ public:
     NPObject *GetScriptablePeer();
     
 private:
-    static void *WaitThread(void *opaque);
+    static void SigchldRoutine(int sig, siginfo_t *info, void *uap);
     void WriteToPipe(const void *data, uint32_t size);
     void SendInit();
     void SendMsg(uint32_t id);
     void SendValue(uint32_t id, uint32_t value);
     void SendStr(uint32_t id, const char *str);
     void SendWStr(uint32_t id, const wchar_t *str);
+    void CallOnDisconnected(int code);
   
 private:
-    pid_t m_child_pid;
+    static std::map<pid_t, nsPluginInstance *> s_children;
     PRInt32 m_connected_status;
     SpiceController m_external_controller;
 

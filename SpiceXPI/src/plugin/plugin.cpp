@@ -50,7 +50,6 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <errno.h>
-#include <sys/types.h>
 #include <unistd.h>
 #include <string>
 #include <sstream>
@@ -190,6 +189,9 @@ void NS_DestroyPluginInstance(nsPluginInstanceBase *aPlugin)
 //
 // nsPluginInstance class implementation
 //
+
+std::map<pid_t, nsPluginInstance *> nsPluginInstance::s_children;
+
 nsPluginInstance::nsPluginInstance(NPP aInstance):
     nsPluginInstanceBase(),
     m_instance(aInstance),
@@ -218,6 +220,11 @@ nsPluginInstance::nsPluginInstance(NPP aInstance):
     }
 
     m_connected_status = -2;
+
+    struct sigaction chld;
+    chld.sa_sigaction = SigchldRoutine;
+    chld.sa_flags = SA_NOCLDSTOP | SA_RESTART | SA_SIGINFO;
+    sigaction(SIGCHLD, &chld, NULL);
 }
 
 nsPluginInstance::~nsPluginInstance()
@@ -560,9 +567,9 @@ void nsPluginInstance::Connect()
         return;
     }
 
-    m_child_pid = fork();
-    LOG_DEBUG(" m_child_pid = " << m_child_pid);
-    if (m_child_pid == 0)
+    pid_t child = fork();
+    LOG_DEBUG("child pid: " << child);
+    if (child == 0)
     {
         std::string spicec_path = getSpicecPath();
         if (spicec_path.empty())
@@ -654,9 +661,7 @@ void nsPluginInstance::Connect()
         // set connected status
         m_connected_status = -1;
 
-        // setup wait thread
-        pthread_t wait_thread_id;
-        pthread_create(&wait_thread_id, NULL, WaitThread, static_cast<void *>(this));
+        s_children[child] = this;
     }
 }
 
@@ -668,8 +673,15 @@ void nsPluginInstance::Show()
 
 void nsPluginInstance::Disconnect()
 {
-    if (m_child_pid != 0)
-        kill(m_child_pid, SIGTERM);
+    for (std::map<pid_t, nsPluginInstance *>::iterator it = s_children.begin();
+         it != s_children.end(); ++it)
+    {
+        if (it->second == this)
+        {
+            kill(it->first, SIGTERM);
+            break;
+        }
+    }
 }
 
 void nsPluginInstance::ConnectedStatus(PRInt32 *retval)
@@ -694,20 +706,69 @@ void nsPluginInstance::SetUsbFilter(const char *aUsbFilter)
     // when fixed in RHEVM
 }
 
-void *nsPluginInstance::WaitThread(void *opaque)
+void nsPluginInstance::CallOnDisconnected(int code)
 {
-    if (opaque == NULL)
-        return NULL;
+    NPObject *window = NULL;
+    if (NPN_GetValue(m_instance, NPNVWindowNPObject, &window) != NPERR_NO_ERROR)
+    {
+        LOG_ERROR("could not get browser window, when trying to call OnDisconnected");
+        return;
+    }
+
+    // get OnDisconnected callback
+    NPIdentifier id_on_disconnected = NPN_GetStringIdentifier("OnDisconnected");
+    if (!id_on_disconnected)
+    {
+        LOG_ERROR("could not find OnDisconnected identifier");
+        return;
+    }
+
+    NPVariant var_on_disconnected;
+    if (!NPN_GetProperty(m_instance, window, id_on_disconnected, &var_on_disconnected))
+    {
+        LOG_ERROR("could not get OnDisconnected function");
+        return;
+    }
+
+    if (!NPVARIANT_IS_OBJECT(var_on_disconnected))
+    {
+        LOG_ERROR("OnDisconnected is not object");
+        return;
+    }
+
+    NPObject *call_on_disconnected = NPVARIANT_TO_OBJECT(var_on_disconnected);
+
+    // call OnDisconnected
+    NPVariant arg;
+    NPVariant void_result;
+    INT32_TO_NPVARIANT(code, arg);
+    NPVariant args[] = { arg };
+
+    if (NPN_InvokeDefault(m_instance, call_on_disconnected, args, sizeof(args) / sizeof(args[0]), &void_result))
+    {
+        LOG_DEBUG("OnDisconnected successfuly called");
+    }
+    else
+    {
+        LOG_ERROR("could not call OnDisconnected");
+    }
+
+    // cleanup
+    NPN_ReleaseObject(window);
+    NPN_ReleaseVariantValue(&var_on_disconnected);
+}
+
+void nsPluginInstance::SigchldRoutine(int sig, siginfo_t *info, void *uap)
+{
+    LOG_DEBUG("child finished, pid: " << info->si_pid);
 
     int exit_code;
-    nsPluginInstance *fake_this = reinterpret_cast<nsPluginInstance *>(opaque);
+    waitpid(info->si_pid, &exit_code, 0);
 
-    waitpid(fake_this->m_child_pid, &exit_code, 0);
-    LOG_DEBUG("spicec exit code = " << exit_code);
-    fake_this->m_connected_status = fake_this->m_external_controller.TranslateRC(exit_code);
-    unlink(fake_this->m_trust_store_file.c_str());
-    fake_this->m_trust_store_file.clear();
-    return NULL;
+    nsPluginInstance *fake_this = s_children[info->si_pid];
+    fake_this->CallOnDisconnected(exit_code);
+    fake_this->m_external_controller.Disconnect();
+    s_children.erase(info->si_pid);
 }
 
 // ==============================
