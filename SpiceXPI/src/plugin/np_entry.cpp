@@ -209,7 +209,7 @@ NPError NP_Initialize(NPNetscapeFuncs *aNPNFuncs, NPPluginFuncs *aNPPFuncs)
     return NS_PluginInitialize();
 }
 
-char *NP_GetMIMEDescription()
+const char *NP_GetMIMEDescription()
 {
     return NPP_GetMIMEDescription();
 }
