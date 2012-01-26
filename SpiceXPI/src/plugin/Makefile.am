@@ -2,7 +2,6 @@ NULL            =
 EXTENSION_ID    = SpiceXPI@redhat.com
 FIREFOX_APPID   = {ec8030f7-c20a-464f-9b0e-13a3a9e97384}
 extensiondir    = $(libdir)/mozilla
-XPIDL_BIN       = `pkg-config --variable=libdir libxul`/xpidl
 SDK_INCLUDE_DIR = `pkg-config --variable=idldir libxul`
 
 INCLUDES =                           \
@@ -63,20 +62,22 @@ libnsISpicec_la_SOURCES =            \
 	npplat.h                         \
 	$(NULL)
 
-BUILT_SOURCEFILES =                  \
-	nsISpicec.h                      \
-	nsISpicec.xpt                    \
-	$(NULL)
-
+if HAVE_XPIDL
 nsISpicec.h: nsISpicec.idl
-	$(XPIDL_BIN) -m header -I $(SDK_INCLUDE_DIR) $<
+	$(XPIDL) -m header -I $(SDK_INCLUDE_DIR) $<
 
 nsISpicec.xpt: nsISpicec.idl
-	$(XPIDL_BIN) -m typelib -I $(SDK_INCLUDE_DIR) $<
+	$(XPIDL) -m typelib -I $(SDK_INCLUDE_DIR) $<
+else
+nsISpicec.h: nsISpicec.idl
+	$(PYTHON) `pkg-config --variable=sdkdir libxul`/sdk/bin/header.py -I $(SDK_INCLUDE_DIR) $< -o $@
 
-BUILT_SOURCES = $(BUILT_SOURCEFILES)
+nsISpicec.xpt: nsISpicec.idl
+	$(PYTHON) `pkg-config --variable=sdkdir libxul`/sdk/bin/typelib.py -I $(SDK_INCLUDE_DIR) $< -o $@
+endif
 
-MAINTAINERCLEANFILES =               \
-	$(BUILT_SOURCEFILES)
+BUILT_SOURCES =					\
+	nsISpicec.h				\
+	nsISpicec.xpt				\
+	$(NULL)
 
-EXTRA_DIST = nsISpicec.xpt

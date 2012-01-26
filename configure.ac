@@ -1,5 +1,5 @@
 AC_PREREQ([2.57])
-AC_INIT(spice-xpi, [2.6], [], spice-xpi)
+AC_INIT(spice-xpi, [2.7], [], spice-xpi)
 
 AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER([config.h])
@@ -47,15 +47,15 @@ AC_SUBST(XUL_CFLAGS)
 AC_SUBST(XUL_LIBS)
 
 # Find xpidl
-for i in `pkg-config --variable=libdir libxul`/xpidl ; do
-    if test -x $i ; then
-       XPIDL=$i
-    fi
-done
-if test x"XPIDL" = x ; then
-   AC_MSG_ERROR([Can't find xpidl based on libxulrunner .pc file])
-fi
+XPIDL=`pkg-config --variable=libdir libxul`/xpidl
+AM_CONDITIONAL([HAVE_XPIDL], [test -x "$XPIDL"])
 AC_SUBST(XPIDL)
+
+if ! test -x "$XPIDL"; then
+  AM_PATH_PYTHON
+  AC_CHECK_FILE([`pkg-config --variable=sdkdir libxul`/sdk/bin/header.py])
+  AC_CHECK_FILE([`pkg-config --variable=sdkdir libxul`/sdk/bin/typelib.py])
+fi
 
 XUL_INCLUDEDIR=`pkg-config --variable=includedir libxul`
 XUL_IDLDIR=`pkg-config --variable=idldir libxul`
@@ -68,9 +68,8 @@ PKG_CHECK_MODULES(XUL191,
         have_xul191=yes,
         have_xul191=no)
 
-AM_CONDITIONAL([HAVE_XUL191], [test "x$have_xul191" = "xyes"])
 if test "x$have_xul191" = "xyes" ; then
-  AC_DEFINE([HAVE_XUL191], [], [Define if we have libxul >= 1.9.1])
+  AC_DEFINE([HAVE_XUL191], [1], [Define if we have libxul >= 1.9.1])
 fi
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
