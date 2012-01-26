@@ -81,3 +81,5 @@ BUILT_SOURCES =					\
 	nsISpicec.xpt				\
 	$(NULL)
 
+distclean-local:
+	rm -f $(BUILT_SOURCES)
