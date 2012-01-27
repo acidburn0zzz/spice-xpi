@@ -1,5 +1,7 @@
 spice-xpi 2.7
 =============
 
+- run /usr/libexec/spice-xpi-client first
+- simple test.html page
 - build fixes for newer and older xul
 - fix out of tree build
