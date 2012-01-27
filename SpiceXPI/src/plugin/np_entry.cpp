@@ -209,10 +209,17 @@ NPError NP_Initialize(NPNetscapeFuncs *aNPNFuncs, NPPluginFuncs *aNPPFuncs)
     return NS_PluginInitialize();
 }
 
+#ifdef NPAPI_USE_CONSTCHARS
 const char *NP_GetMIMEDescription()
 {
     return NPP_GetMIMEDescription();
 }
+#else
+char *NP_GetMIMEDescription()
+{
+    return NPP_GetMIMEDescription();
+}
+#endif
 
 NPError NP_GetValue(void *future, NPPVariable aVariable, void *aValue)
 {
