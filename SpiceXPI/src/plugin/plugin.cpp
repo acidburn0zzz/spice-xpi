@@ -747,13 +747,15 @@ void nsPluginInstance::CallOnDisconnected(int code)
 void nsPluginInstance::SigchldRoutine(int sig, siginfo_t *info, void *uap)
 {
     LOG_DEBUG("child finished, pid: " << info->si_pid);
-
     int exit_code;
     waitpid(info->si_pid, &exit_code, 0);
 
-    nsPluginInstance *fake_this = s_children[info->si_pid];
-    fake_this->CallOnDisconnected(exit_code);
-    fake_this->m_external_controller.Disconnect();
+    if (!getenv("SPICE_XPI_DEBUG")) {
+        nsPluginInstance *fake_this = s_children[info->si_pid];
+        fake_this->CallOnDisconnected(exit_code);
+        fake_this->m_external_controller.Disconnect();
+    }
+
     s_children.erase(info->si_pid);
 }
 
