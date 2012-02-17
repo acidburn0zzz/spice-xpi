@@ -85,6 +85,7 @@ private:
     static NPIdentifier m_id_trust_store;
     static NPIdentifier m_id_host_subject;
     static NPIdentifier m_id_fullscreen;
+    static NPIdentifier m_id_smartcard;
     static NPIdentifier m_id_admin_console;
     static NPIdentifier m_id_title;
     static NPIdentifier m_id_dynamic_menu;

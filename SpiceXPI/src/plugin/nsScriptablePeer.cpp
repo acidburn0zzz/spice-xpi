@@ -68,6 +68,7 @@ NPIdentifier ScriptablePluginObject::m_id_ssl_channels;
 NPIdentifier ScriptablePluginObject::m_id_trust_store;
 NPIdentifier ScriptablePluginObject::m_id_host_subject;
 NPIdentifier ScriptablePluginObject::m_id_fullscreen;
+NPIdentifier ScriptablePluginObject::m_id_smartcard;
 NPIdentifier ScriptablePluginObject::m_id_admin_console;
 NPIdentifier ScriptablePluginObject::m_id_title;
 NPIdentifier ScriptablePluginObject::m_id_dynamic_menu;
@@ -117,6 +118,7 @@ void ScriptablePluginObject::Init()
     m_id_trust_store = NPN_GetStringIdentifier("TrustStore");
     m_id_host_subject = NPN_GetStringIdentifier("HostSubject");
     m_id_fullscreen = NPN_GetStringIdentifier("fullScreen");
+    m_id_smartcard = NPN_GetStringIdentifier("Smartcard");
     m_id_admin_console = NPN_GetStringIdentifier("AdminConsole");
     m_id_title = NPN_GetStringIdentifier("Title");
     m_id_dynamic_menu = NPN_GetStringIdentifier("dynamicMenu");
@@ -158,6 +160,7 @@ bool ScriptablePluginObject::HasProperty(NPIdentifier name)
            name == m_id_trust_store ||
            name == m_id_host_subject ||
            name == m_id_fullscreen ||
+           name == m_id_smartcard ||
            name == m_id_admin_console ||
            name == m_id_title ||
            name == m_id_dynamic_menu ||
@@ -195,6 +198,8 @@ bool ScriptablePluginObject::GetProperty(NPIdentifier name, NPVariant *result)
         STRINGZ_TO_NPVARIANT(m_plugin->GetHostSubject(), *result);
     else if (name == m_id_fullscreen)
         BOOLEAN_TO_NPVARIANT(m_plugin->GetFullScreen(), *result);
+    else if (name == m_id_smartcard)
+        BOOLEAN_TO_NPVARIANT(m_plugin->GetSmartcard(), *result);
     else if (name == m_id_admin_console)
         BOOLEAN_TO_NPVARIANT(m_plugin->GetAdminConsole(), *result);
     else if (name == m_id_title)
@@ -269,6 +274,8 @@ bool ScriptablePluginObject::SetProperty(NPIdentifier name, const NPVariant *val
         m_plugin->SetHostSubject(str.c_str());
     else if (name == m_id_fullscreen)
         m_plugin->SetFullScreen(boolean);
+    else if (name == m_id_smartcard)
+        m_plugin->SetSmartcard(boolean);
     else if (name == m_id_admin_console)
         m_plugin->SetAdminConsole(boolean);
     else if (name == m_id_title)

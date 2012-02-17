@@ -248,6 +248,7 @@ NPBool nsPluginInstance::init(NPWindow *aWindow)
     m_guest_host_name.clear();
 
     m_fullscreen = PR_FALSE;
+    m_smartcard = PR_FALSE;
     m_admin_console = PR_FALSE;
     m_no_taskmgr_execution = PR_FALSE;
     m_send_ctrlaltdel = PR_FALSE;
@@ -369,6 +370,17 @@ PRBool nsPluginInstance::GetFullScreen() const
 void nsPluginInstance::SetFullScreen(PRBool aFullScreen)
 {
     m_fullscreen = aFullScreen;
+}
+
+/* attribute boolean Smartcard; */
+PRBool nsPluginInstance::GetSmartcard() const
+{
+    return m_smartcard;
+}
+
+void nsPluginInstance::SetSmartcard(PRBool aSmartcard)
+{
+    m_smartcard = aSmartcard;
 }
 
 /* attribute string Title; */
@@ -619,6 +631,7 @@ void nsPluginInstance::Connect()
         SendValue(CONTROLLER_FULL_SCREEN,
                    (m_fullscreen == PR_TRUE ? CONTROLLER_SET_FULL_SCREEN : 0) |
                    (m_admin_console == PR_FALSE ? CONTROLLER_AUTO_DISPLAY_RES : 0));
+        SendValue(CONTROLLER_ENABLE_SMARTCARD, m_smartcard == PR_TRUE ? 1 : 0);
         SendStr(CONTROLLER_PASSWORD, m_password.c_str());
         SendStr(CONTROLLER_TLS_CIPHERS, m_cipher_suite.c_str());
         SendStr(CONTROLLER_SET_TITLE, m_title.c_str());

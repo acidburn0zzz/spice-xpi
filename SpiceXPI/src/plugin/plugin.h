@@ -115,6 +115,10 @@ public:
     /* attribute ing FullScreen; */
     PRBool GetFullScreen() const;
     void SetFullScreen(PRBool aFullScreen);
+
+    /* attribute ing smartcard; */
+    PRBool GetSmartcard() const;
+    void SetSmartcard(PRBool aSmartcard);
     
     /* attribute ing Port; */
     char *GetTitle() const;
@@ -187,6 +191,7 @@ private:
     std::string m_trust_store;
     std::string m_host_subject;
     PRBool m_fullscreen;
+    PRBool m_smartcard;
     PRBool m_admin_console;
     std::string m_title;
     std::string m_dynamic_menu;
