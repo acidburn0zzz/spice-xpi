@@ -6,6 +6,7 @@ SDK_INCLUDE_DIR = `pkg-config --variable=idldir libxul`
 
 INCLUDES =                           \
 	$(XUL_CFLAGS)                    \
+	$(SPICE_PROTOCOL_CFLAGS)         \
 	-I$(top_srcdir)/common           \
 	-I..                             \
 	-I$(top_srcdir)/red	             \
@@ -55,7 +56,6 @@ libnsISpicec_la_SOURCES =            \
 	controller.cpp                   \
 	debug.h                          \
 	controller.h                     \
-	controller_prot.h                \
 	../../../common/rederrorcodes.h  \
 	../../../common/common.h         \
 	nsISpicec.idl                    \

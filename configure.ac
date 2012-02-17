@@ -40,6 +40,9 @@ PKG_CHECK_MODULES(LOG4CPP, log4cpp)
 AC_SUBST(LOG4CPP_CFLAGS)
 AC_SUBST(LOG4CPP_LIBS)
 
+PKG_CHECK_MODULES(SPICE_PROTOCOL, spice-protocol >= 0.10.2)
+AC_SUBST(SPICE_PROTOCOL_CFLAGS)
+
 # The explicit nspr dep is needed because libxul-embedding
 # in RHEL5 is missing the Requires
 PKG_CHECK_MODULES(XUL, libxul-embedding >= 1.9 nspr >= 4.7.1)

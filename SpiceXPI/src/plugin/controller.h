@@ -62,7 +62,7 @@ extern "C" {
 #  include <limits.h>
 }
 
-#include "controller_prot.h"
+#include <spice/controller_prot.h>
 
 class SpiceController
 {
