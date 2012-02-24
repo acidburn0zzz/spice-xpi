@@ -57,8 +57,6 @@ extern "C" {
 #include "rederrorcodes.h"
 #include "controller.h"
 
-const char *channel_names[] = { "dummy", "main", "display", "inputs", "cursor", "playback", "record" };
-
 SpiceController::SpiceController():
     m_client_socket(-1)
 {
