@@ -15,24 +15,6 @@ AC_CANONICAL_HOST
 AC_PROG_LIBTOOL
 AM_PROG_CC_C_O
 
-# Check for the CPU we are using
-#
-AC_MSG_CHECKING(for x86 or x86-64 platform)
-case $host_cpu in
-  i386|i486|i586|i686|i786|k6|k7)
-       variant=32
-        ;;
-  x86_64)
-       variant=64
-       ;;
-  *)
-       AC_MSG_RESULT(no)
-       echo Only x86 and x86-64 are supported
-       exit 1
-esac
-AC_MSG_RESULT($variant bit)
-AM_CONDITIONAL([X86_64], [test "$variant" = 64])
-
 dnl =========================================================================
 dnl Check deps
 
