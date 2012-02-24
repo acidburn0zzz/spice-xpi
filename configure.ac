@@ -40,7 +40,8 @@ PKG_CHECK_MODULES(LOG4CPP, log4cpp)
 AC_SUBST(LOG4CPP_CFLAGS)
 AC_SUBST(LOG4CPP_LIBS)
 
-PKG_CHECK_MODULES(SPICE_PROTOCOL, spice-protocol >= 0.10.2)
+AC_CONFIG_SUBDIRS([spice-protocol])
+SPICE_PROTOCOL_CFLAGS='-I ${top_srcdir}/spice-protocol'
 AC_SUBST(SPICE_PROTOCOL_CFLAGS)
 
 # The explicit nspr dep is needed because libxul-embedding
