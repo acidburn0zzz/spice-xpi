@@ -569,10 +569,27 @@ void nsPluginInstance::Connect()
         return;
     }
 
+    /* use a pipe for the children to wait until it gets tracked */
+    int pipe_fds[2] = { -1, -1 };
+    if (pipe(pipe_fds) < 0) {
+        perror("spice-xpi system error");
+        return;
+    }
+
     pid_t child = fork();
     LOG_DEBUG("child pid: " << child);
     if (child == 0)
     {
+        close (pipe_fds[1]);
+        pipe_fds[1] = -1;
+
+        char c;
+        if (read(pipe_fds[0], &c, 1) != 0)
+            LOG_ERROR("Invalid read on pipe");
+
+        close (pipe_fds[0]);
+        pipe_fds[0] = -1;
+
         execl("/usr/libexec/spice-xpi-client", "/usr/libexec/spice-xpi-client", NULL);
         LOG_ERROR("ERROR failed to run spice-xpi-client");
 
@@ -584,6 +601,14 @@ void nsPluginInstance::Connect()
     }
     else
     {
+        close(pipe_fds[0]);
+        pipe_fds[0] = -1;
+
+        s_children[child] = this;
+
+        close(pipe_fds[1]);
+        pipe_fds[1] = -1;
+
         m_external_controller.SetFilename(socket_file);
 
         if (m_external_controller.Connect(10) != 0)
@@ -659,8 +684,6 @@ void nsPluginInstance::Connect()
 
         // set connected status
         m_connected_status = -1;
-
-        s_children[child] = this;
     }
 }
 
@@ -765,6 +788,11 @@ void nsPluginInstance::SigchldRoutine(int sig, siginfo_t *info, void *uap)
 
     if (!getenv("SPICE_XPI_DEBUG")) {
         nsPluginInstance *fake_this = s_children[info->si_pid];
+        if (fake_this == NULL) {
+            LOG_ERROR("Invalid children signal");
+            return;
+        }
+
         fake_this->CallOnDisconnected(exit_code);
         fake_this->m_external_controller.Disconnect();
     }
@@ -777,7 +805,7 @@ void nsPluginInstance::SigchldRoutine(int sig, siginfo_t *info, void *uap)
 // ==============================
 //
 // here the plugin is asked by Mozilla to tell if it is scriptable
-// we should return a valid interface id and a pointer to 
+// we should return a valid interface id and a pointer to
 // nsScriptablePeer interface which we should have implemented
 // and which should be defined in the corressponding *.xpt file
 // in the bin/components folder
