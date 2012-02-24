@@ -46,6 +46,7 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 
 #include <stdlib.h>
 #include <dlfcn.h>
@@ -54,6 +55,7 @@
 #include <string>
 #include <sstream>
 #include <signal.h>
+#include <glib.h>
 
 #include "nsCOMPtr.h"
 
@@ -73,15 +75,11 @@ static NS_DEFINE_CID(kPluginManagerCID, NS_PLUGINMANAGER_CID);
 #include <nsIServiceManager.h>
 #include <nsISupportsUtils.h> // some usefule macros are defined here
 
-
-#include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/BasicConfigurator.hh>
-
 #include <fstream>
 #include <set>
+
 #include "config.h"
 #include "controller.h"
-#include "debug.h"
 #include "plugin.h"
 #include "nsScriptablePeer.h"
 
@@ -93,7 +91,6 @@ namespace {
     const std::string PLUGIN_NAME = "Spice Firefox Plugin " + ver;
     const std::string MIME_TYPES_DESCRIPTION = "application/x-spice:qsc:" + PLUGIN_NAME;
     const std::string PLUGIN_DESCRIPTION = PLUGIN_NAME + " Spice Client wrapper for firefox";
-    const std::string LOGGER_CONFIG = "/usr/share/spice/logger.ini";
 
     // helper function for string copy
     char *stringCopy(const std::string &src)
@@ -196,18 +193,6 @@ nsPluginInstance::nsPluginInstance(NPP aInstance):
     // create temporary directory in /tmp
     char tmp_dir[] = "/tmp/spicec-XXXXXX";
     m_tmp_dir = mkdtemp(tmp_dir);
-
-    // configure log4cpp
-    std::ifstream log_init(LOGGER_CONFIG.c_str());
-    if (log_init.good())
-    {
-        log_init.close();
-        log4cpp::PropertyConfigurator::configure(LOGGER_CONFIG.c_str());
-    }
-    else
-    {
-        log4cpp::BasicConfigurator::configure();
-    }
 
     m_connected_status = -2;
 
@@ -565,7 +550,7 @@ void nsPluginInstance::Connect()
     socket_file += "/spice-xpi";
     if (setenv("SPICE_XPI_SOCKET", socket_file.c_str(), 1))
     {
-        LOG_ERROR ("could not set SPICE_XPI_SOCKET env variable");
+        g_critical("could not set SPICE_XPI_SOCKET env variable");
         return;
     }
 
@@ -577,27 +562,27 @@ void nsPluginInstance::Connect()
     }
 
     pid_t child = fork();
-    LOG_DEBUG("child pid: " << child);
+    g_debug("child pid: %llu", (guint64)child);
     if (child == 0)
     {
-        close (pipe_fds[1]);
+        close(pipe_fds[1]);
         pipe_fds[1] = -1;
 
         char c;
         if (read(pipe_fds[0], &c, 1) != 0)
-            LOG_ERROR("Invalid read on pipe");
+            g_critical("Error while reading on pipe: %s", g_strerror(errno));
 
-        close (pipe_fds[0]);
+        close(pipe_fds[0]);
         pipe_fds[0] = -1;
 
         execl("/usr/libexec/spice-xpi-client", "/usr/libexec/spice-xpi-client", NULL);
-        LOG_ERROR("ERROR failed to run spice-xpi-client");
+        g_message("failed to run spice-xpi-client, running spicec instead");
 
         // TODO: temporary fallback for backward compatibility
         execl("/usr/bin/spicec", "/usr/bin/spicec", "--controller", NULL);
-        LOG_ERROR("ERROR failed to run spicec fallback");
+        g_critical("ERROR failed to run spicec fallback");
 
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     else
     {
@@ -613,7 +598,7 @@ void nsPluginInstance::Connect()
 
         if (m_external_controller.Connect(10) != 0)
         {
-            LOG_ERROR ("could not connect to spice client controller");
+            g_critical("could not connect to spice client controller");
             return;
         }
 
@@ -636,7 +621,7 @@ void nsPluginInstance::Connect()
             }
             else
             {
-                LOG_ERROR ("could not open truststore temp file");
+                g_critical("could not open truststore temp file");
                 close(fd);
                 unlink(m_trust_store_file.c_str());
                 m_trust_store_file.clear();
@@ -645,7 +630,7 @@ void nsPluginInstance::Connect()
         }
         else
         {
-            LOG_ERROR ("could not create truststore temp file. errno=" << errno);
+            g_critical("could not create truststore temp file: %s", g_strerror(errno));
             return;
         }
 
@@ -689,7 +674,7 @@ void nsPluginInstance::Connect()
 
 void nsPluginInstance::Show()
 {
-    LOG_DEBUG("sending show message");
+    g_debug("sending show message");
     SendMsg(CONTROLLER_SHOW);
 }
 
@@ -733,7 +718,7 @@ void nsPluginInstance::CallOnDisconnected(int code)
     NPObject *window = NULL;
     if (NPN_GetValue(m_instance, NPNVWindowNPObject, &window) != NPERR_NO_ERROR)
     {
-        LOG_ERROR("could not get browser window, when trying to call OnDisconnected");
+        g_critical("could not get browser window, when trying to call OnDisconnected");
         return;
     }
 
@@ -741,20 +726,20 @@ void nsPluginInstance::CallOnDisconnected(int code)
     NPIdentifier id_on_disconnected = NPN_GetStringIdentifier("OnDisconnected");
     if (!id_on_disconnected)
     {
-        LOG_ERROR("could not find OnDisconnected identifier");
+        g_critical("could not find OnDisconnected identifier");
         return;
     }
 
     NPVariant var_on_disconnected;
     if (!NPN_GetProperty(m_instance, window, id_on_disconnected, &var_on_disconnected))
     {
-        LOG_ERROR("could not get OnDisconnected function");
+        g_critical("could not get OnDisconnected function");
         return;
     }
 
     if (!NPVARIANT_IS_OBJECT(var_on_disconnected))
     {
-        LOG_ERROR("OnDisconnected is not object");
+        g_critical("OnDisconnected is not object");
         return;
     }
 
@@ -767,13 +752,9 @@ void nsPluginInstance::CallOnDisconnected(int code)
     NPVariant args[] = { arg };
 
     if (NPN_InvokeDefault(m_instance, call_on_disconnected, args, sizeof(args) / sizeof(args[0]), &void_result))
-    {
-        LOG_DEBUG("OnDisconnected successfuly called");
-    }
+        g_debug("OnDisconnected successfuly called");
     else
-    {
-        LOG_ERROR("could not call OnDisconnected");
-    }
+        g_critical("could not call OnDisconnected");
 
     // cleanup
     NPN_ReleaseObject(window);
@@ -782,14 +763,14 @@ void nsPluginInstance::CallOnDisconnected(int code)
 
 void nsPluginInstance::SigchldRoutine(int sig, siginfo_t *info, void *uap)
 {
-    LOG_DEBUG("child finished, pid: " << info->si_pid);
+    g_debug("child finished, pid: %llu", (guint64)info->si_pid);
     int exit_code;
     waitpid(info->si_pid, &exit_code, 0);
 
     if (!getenv("SPICE_XPI_DEBUG")) {
         nsPluginInstance *fake_this = s_children[info->si_pid];
         if (fake_this == NULL) {
-            LOG_ERROR("Invalid children signal");
+            g_critical("Invalid children signal");
             return;
         }
 

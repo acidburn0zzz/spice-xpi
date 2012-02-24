@@ -18,13 +18,13 @@ AM_PROG_CC_C_O
 dnl =========================================================================
 dnl Check deps
 
-PKG_CHECK_MODULES(LOG4CPP, log4cpp)
-AC_SUBST(LOG4CPP_CFLAGS)
-AC_SUBST(LOG4CPP_LIBS)
-
 AC_CONFIG_SUBDIRS([spice-protocol])
 SPICE_PROTOCOL_CFLAGS='-I ${top_srcdir}/spice-protocol'
 AC_SUBST(SPICE_PROTOCOL_CFLAGS)
+
+PKG_CHECK_MODULES(GLIB, glib-2.0)
+AC_SUBST(GLIB_CFLAGS)
+AC_SUBST(GLIB_LIBS)
 
 # The explicit nspr dep is needed because libxul-embedding
 # in RHEL5 is missing the Requires

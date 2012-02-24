@@ -1,10 +1,8 @@
-SUBDIRS=src
+SUBDIRS = src
 
-EXTRA_DIST = logger.ini
 spicedatadir = $(datadir)/spice
-spicedata_DATA = logger.ini
 
-DISTDIR=dist
+DISTDIR = dist
 
 all-local: SpiceXPI.xpi
 
@@ -16,7 +14,6 @@ SpiceXPI.xpi: $(srcdir)/src/install.rdf src/plugin/nsISpicec.xpt src/plugin/.lib
 	@cp $(srcdir)/src/install.rdf $(DISTDIR)
 	@cp src/plugin/*.xpt $(DISTDIR)/plugins
 	@cp src/plugin/.libs/libnsISpicec.so $(DISTDIR)/plugins/nsISpicec.so
-	@cp $(srcdir)/logger.ini $(DISTDIR)/plugins/logger.ini
 	@(cd $(DISTDIR); zip -q -r ../$@ .)
 
 distclean-local:

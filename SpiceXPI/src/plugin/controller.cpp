@@ -44,6 +44,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cerrno>
+#include <glib.h>
 
 extern "C" {
 #  include <stdint.h>
@@ -53,16 +54,10 @@ extern "C" {
 #  include <sys/un.h>
 }
 
-#include "debug.h"
 #include "rederrorcodes.h"
 #include "controller.h"
 
 const char *channel_names[] = { "dummy", "main", "display", "inputs", "cursor", "playback", "record" };
-
-void QErrorHandler(int err, const char *custom_string)
-{
-    LOG_DEBUG("Something went wrong: " << custom_string << ", " << err);
-}
 
 SpiceController::SpiceController():
     m_client_socket(-1)
@@ -77,7 +72,7 @@ SpiceController::SpiceController(const std::string &name):
 
 SpiceController::~SpiceController()
 {
-    LOG_TRACE("");
+    g_debug(G_STRFUNC);
     Disconnect();
 }
 
@@ -96,7 +91,7 @@ int SpiceController::Connect()
     {
         if ((m_client_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
         {
-            QErrorHandler(errno, "SpiceController::Connect socket create error");
+            g_critical("controller socket: %s", g_strerror(errno));
             return -1;
         }
     }
@@ -108,12 +103,11 @@ int SpiceController::Connect()
     int rc = connect(m_client_socket, (struct sockaddr *) &remote, strlen(remote.sun_path) + sizeof(remote.sun_family));
     if (rc == -1)
     {
-        QErrorHandler(errno, "connect error");
-        LOG_DEBUG("Connect Error");
+        g_critical("controller connect: %s", g_strerror(errno));
     }
     else
     {
-        LOG_DEBUG("Connected!");
+        g_debug("controller connected");
     }
 
     return rc;
@@ -152,9 +146,8 @@ uint32_t SpiceController::Write(const void *lpBuffer, uint32_t nBytesToWrite)
 
     if (len != (ssize_t)nBytesToWrite)
     {
-        LOG_WARN("send error, bytes to write = " << nBytesToWrite <<
-                 ", bytes actually written = " << len << ", errno = " << errno);
-        QErrorHandler(1, "send error");
+        g_warning("incomplete send, bytes to write = %lu, bytes written = %d: %s",
+                  nBytesToWrite, len, g_strerror(errno));
     }
 
     return len;
