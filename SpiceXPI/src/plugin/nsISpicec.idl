@@ -60,6 +60,7 @@ interface nsISpicec : nsISupports {
     attribute boolean SendCtrlAltdelete;
     attribute unsigned short UsbListenPort;
     attribute boolean UsbAutoShare;
+    attribute boolean Smartcard;
 
     void connect();
     void show();
