@@ -126,7 +126,7 @@ void ScriptablePluginObject::Init()
     m_id_guest_hostname = NPN_GetStringIdentifier("GuestHostName");
     m_id_hotkey = NPN_GetStringIdentifier("HotKey");
     m_id_no_taskmgr_execution = NPN_GetStringIdentifier("NoTaskMgrExecution");
-    m_id_send_ctrlaltdel = NPN_GetStringIdentifier("SendCtrlAltdelete");
+    m_id_send_ctrlaltdel = NPN_GetStringIdentifier("SendCtrlAltDelete");
     m_id_usb_listen_port = NPN_GetStringIdentifier("UsbListenPort");
     m_id_usb_auto_share = NPN_GetStringIdentifier("UsbAutoShare");
     m_id_connect = NPN_GetStringIdentifier("connect");
@@ -215,7 +215,7 @@ bool ScriptablePluginObject::GetProperty(NPIdentifier name, NPVariant *result)
     else if (name == m_id_no_taskmgr_execution)
         BOOLEAN_TO_NPVARIANT(m_plugin->GetNoTaskMgrExecution(), *result);
     else if (name == m_id_send_ctrlaltdel)
-        BOOLEAN_TO_NPVARIANT(m_plugin->GetSendCtrlAltdelete(), *result);
+        BOOLEAN_TO_NPVARIANT(m_plugin->GetSendCtrlAltDelete(), *result);
     else if (name == m_id_usb_listen_port)
         INT32_TO_NPVARIANT(m_plugin->GetUsbListenPort(), *result);
     else if (name == m_id_usb_auto_share)
@@ -291,7 +291,7 @@ bool ScriptablePluginObject::SetProperty(NPIdentifier name, const NPVariant *val
     else if (name == m_id_no_taskmgr_execution)
         m_plugin->SetNoTaskMgrExecution(boolean);
     else if (name == m_id_send_ctrlaltdel)
-        m_plugin->SetSendCtrlAltdelete(boolean);
+        m_plugin->SetSendCtrlAltDelete(boolean);
     else if (name == m_id_usb_listen_port)
         m_plugin->SetUsbListenPort(val);
     else if (name == m_id_usb_auto_share)

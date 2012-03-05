@@ -148,9 +148,9 @@ public:
     PRBool GetNoTaskMgrExecution() const;
     void SetNoTaskMgrExecution(PRBool aNoTaskMgrExecution);
     
-    /* attribute ing SendCtrlAltdelete; */
-    PRBool GetSendCtrlAltdelete() const;
-    void SetSendCtrlAltdelete(PRBool aSendCtrlAltdelete);
+    /* attribute ing SendCtrlAltDelete; */
+    PRBool GetSendCtrlAltDelete() const;
+    void SetSendCtrlAltDelete(PRBool aSendCtrlAltDelete);
     
     /* attribute unsigned short UsbListenPort; */
     unsigned short GetUsbListenPort() const;

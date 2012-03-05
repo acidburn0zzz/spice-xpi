@@ -445,15 +445,15 @@ void nsPluginInstance::SetNoTaskMgrExecution(PRBool aNoTaskMgrExecution)
     m_no_taskmgr_execution = aNoTaskMgrExecution;
 }
 
-/* attribute boolean SendCtrlAltdelete; */
-PRBool nsPluginInstance::GetSendCtrlAltdelete() const
+/* attribute boolean SendCtrlAltDelete; */
+PRBool nsPluginInstance::GetSendCtrlAltDelete() const
 {
     return m_send_ctrlaltdel;
 }
 
-void nsPluginInstance::SetSendCtrlAltdelete(PRBool aSendCtrlAltdelete)
+void nsPluginInstance::SetSendCtrlAltDelete(PRBool aSendCtrlAltDelete)
 {
-    m_send_ctrlaltdel = aSendCtrlAltdelete;
+    m_send_ctrlaltdel = aSendCtrlAltDelete;
 }
 
 /* attribute unsigned short UsbListenPort; */

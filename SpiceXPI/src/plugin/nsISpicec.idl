@@ -57,7 +57,7 @@ interface nsISpicec : nsISupports {
     attribute string GuestHostName;
     attribute string HotKey;
     attribute boolean NoTaskMgrExecution;
-    attribute boolean SendCtrlAltdelete;
+    attribute boolean SendCtrlAltDelete;
     attribute unsigned short UsbListenPort;
     attribute boolean UsbAutoShare;
     attribute boolean Smartcard;
