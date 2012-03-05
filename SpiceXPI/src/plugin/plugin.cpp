@@ -515,6 +515,12 @@ void nsPluginInstance::SendValue(uint32_t id, uint32_t value)
     WriteToPipe(&msg, sizeof(msg));
 }
 
+void nsPluginInstance::SendBool(uint32_t id, bool value)
+{
+    ControllerValue msg = { {id, sizeof(msg)}, value };
+    WriteToPipe(&msg, sizeof(msg));
+}
+
 void nsPluginInstance::SendStr(uint32_t id, const char *str)
 {
     if (!strlen(str))

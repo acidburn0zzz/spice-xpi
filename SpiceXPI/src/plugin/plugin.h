@@ -170,6 +170,7 @@ private:
     void SendValue(uint32_t id, uint32_t value);
     void SendStr(uint32_t id, const char *str);
     void SendWStr(uint32_t id, const wchar_t *str);
+    void SendBool(uint32_t id, bool value);
     void CallOnDisconnected(int code);
   
 private:
