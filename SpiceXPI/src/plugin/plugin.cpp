@@ -651,6 +651,7 @@ void nsPluginInstance::Connect()
         SendStr(CONTROLLER_PASSWORD, m_password.c_str());
         SendStr(CONTROLLER_TLS_CIPHERS, m_cipher_suite.c_str());
         SendStr(CONTROLLER_SET_TITLE, m_title.c_str());
+        SendBool(CONTROLLER_SEND_CAD, m_send_ctrlaltdel);
 
         /*
          * HACK -- remove leading s from m_SSLChannels, e.g. "main" not "smain"
