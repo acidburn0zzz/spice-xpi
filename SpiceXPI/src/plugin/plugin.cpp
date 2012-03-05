@@ -236,7 +236,7 @@ NPBool nsPluginInstance::init(NPWindow *aWindow)
     m_smartcard = PR_FALSE;
     m_admin_console = PR_FALSE;
     m_no_taskmgr_execution = PR_FALSE;
-    m_send_ctrlaltdel = PR_FALSE;
+    m_send_ctrlaltdel = PR_TRUE;
 
     return m_initialized;
 }
