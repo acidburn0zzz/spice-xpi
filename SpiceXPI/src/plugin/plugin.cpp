@@ -568,7 +568,7 @@ void nsPluginInstance::Connect()
     }
 
     pid_t child = fork();
-    g_debug("child pid: %llu", (guint64)child);
+    g_debug("child pid: %"G_GUINT64_FORMAT, (guint64)child);
     if (child == 0)
     {
         close(pipe_fds[1]);
@@ -770,7 +770,7 @@ void nsPluginInstance::CallOnDisconnected(int code)
 
 void nsPluginInstance::SigchldRoutine(int sig, siginfo_t *info, void *uap)
 {
-    g_debug("child finished, pid: %llu", (guint64)info->si_pid);
+    g_debug("child finished, pid: %"G_GUINT64_FORMAT, (guint64)info->si_pid);
     int exit_code;
     waitpid(info->si_pid, &exit_code, 0);
 
