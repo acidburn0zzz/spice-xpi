@@ -57,6 +57,11 @@
 #include <signal.h>
 #include <glib.h>
 
+extern "C" {
+#include <pthread.h>
+#include <signal.h>
+}
+
 #include "nsCOMPtr.h"
 
 // for plugins
@@ -177,10 +182,9 @@ void NS_DestroyPluginInstance(nsPluginInstanceBase *aPlugin)
 // nsPluginInstance class implementation
 //
 
-std::map<pid_t, nsPluginInstance *> nsPluginInstance::s_children;
-
 nsPluginInstance::nsPluginInstance(NPP aInstance):
     nsPluginInstanceBase(),
+    m_pid_controller(-1),
     m_instance(aInstance),
     m_initialized(PR_FALSE),
     m_scriptable_peer(NULL)
@@ -195,11 +199,6 @@ nsPluginInstance::nsPluginInstance(NPP aInstance):
     m_tmp_dir = mkdtemp(tmp_dir);
 
     m_connected_status = -2;
-
-    struct sigaction chld;
-    chld.sa_sigaction = SigchldRoutine;
-    chld.sa_flags = SA_NOCLDSTOP | SA_RESTART | SA_SIGINFO;
-    sigaction(SIGCHLD, &chld, NULL);
 }
 
 nsPluginInstance::~nsPluginInstance()
@@ -567,9 +566,8 @@ void nsPluginInstance::Connect()
         return;
     }
 
-    pid_t child = fork();
-    g_debug("child pid: %"G_GUINT64_FORMAT, (guint64)child);
-    if (child == 0)
+    m_pid_controller = fork();
+    if (m_pid_controller == 0)
     {
         close(pipe_fds[1]);
         pipe_fds[1] = -1;
@@ -592,10 +590,14 @@ void nsPluginInstance::Connect()
     }
     else
     {
+        g_debug("child pid: %"G_GUINT64_FORMAT, (guint64)m_pid_controller);
+
         close(pipe_fds[0]);
         pipe_fds[0] = -1;
 
-        s_children[child] = this;
+        pthread_t controller_thread_id;
+        pthread_create(&controller_thread_id, NULL, ControllerWaitHelper,
+            reinterpret_cast<void*>(this));
 
         close(pipe_fds[1]);
         pipe_fds[1] = -1;
@@ -687,15 +689,7 @@ void nsPluginInstance::Show()
 
 void nsPluginInstance::Disconnect()
 {
-    for (std::map<pid_t, nsPluginInstance *>::iterator it = s_children.begin();
-         it != s_children.end(); ++it)
-    {
-        if (it->second == this)
-        {
-            kill(it->first, SIGTERM);
-            break;
-        }
-    }
+    kill(m_pid_controller, SIGTERM);
 }
 
 void nsPluginInstance::ConnectedStatus(PRInt32 *retval)
@@ -768,24 +762,27 @@ void nsPluginInstance::CallOnDisconnected(int code)
     NPN_ReleaseVariantValue(&var_on_disconnected);
 }
 
-void nsPluginInstance::SigchldRoutine(int sig, siginfo_t *info, void *uap)
+void *nsPluginInstance::ControllerWaitHelper(void *opaque)
 {
-    g_debug("child finished, pid: %"G_GUINT64_FORMAT, (guint64)info->si_pid);
+    nsPluginInstance *fake_this = reinterpret_cast<nsPluginInstance *>(opaque);
+    if (!fake_this)
+        return NULL;
+
     int exit_code;
-    waitpid(info->si_pid, &exit_code, 0);
+    waitpid(fake_this->m_pid_controller, &exit_code, 0);
+    g_debug("child finished, pid: %"G_GUINT64_FORMAT, (guint64)exit_code);
 
-    if (!getenv("SPICE_XPI_DEBUG")) {
-        nsPluginInstance *fake_this = s_children[info->si_pid];
-        if (fake_this == NULL) {
-            g_critical("Invalid children signal");
-            return;
-        }
-
+    fake_this->m_connected_status = fake_this->m_external_controller.TranslateRC(exit_code);
+    if (!getenv("SPICE_XPI_DEBUG"))
+    {
         fake_this->CallOnDisconnected(exit_code);
         fake_this->m_external_controller.Disconnect();
     }
-
-    s_children.erase(info->si_pid);
+    
+    unlink(fake_this->m_trust_store_file.c_str());
+    fake_this->m_trust_store_file.clear();
+    fake_this->m_pid_controller = -1;
+    return NULL;
 }
 
 // ==============================

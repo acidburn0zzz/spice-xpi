@@ -163,7 +163,7 @@ public:
     NPObject *GetScriptablePeer();
     
 private:
-    static void SigchldRoutine(int sig, siginfo_t *info, void *uap);
+    static void *ControllerWaitHelper(void *opaque);
     void WriteToPipe(const void *data, uint32_t size);
     void SendInit();
     void SendMsg(uint32_t id);
@@ -174,7 +174,7 @@ private:
     void CallOnDisconnected(int code);
   
 private:
-    static std::map<pid_t, nsPluginInstance *> s_children;
+    pid_t m_pid_controller;
     PRInt32 m_connected_status;
     SpiceController m_external_controller;
 
