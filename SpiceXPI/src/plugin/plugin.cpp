@@ -189,11 +189,6 @@ nsPluginInstance::nsPluginInstance(NPP aInstance):
     m_initialized(PR_FALSE),
     m_scriptable_peer(NULL)
 {
-    // create .spicec directory in $HOME
-    m_home_dir = getenv("HOME");
-    m_home_dir += "/.spicec";
-    mkdir(m_home_dir.c_str(), S_IRWXU);
-
     // create temporary directory in /tmp
     char tmp_dir[] = "/tmp/spicec-XXXXXX";
     m_tmp_dir = mkdtemp(tmp_dir);

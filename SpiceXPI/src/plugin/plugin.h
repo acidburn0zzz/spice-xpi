@@ -204,7 +204,6 @@ private:
     std::map<std::string, std::string> m_language;
     
     NPObject *m_scriptable_peer;
-    std::string m_home_dir;
     std::string m_tmp_dir;
     std::string m_trust_store_file;
 };
