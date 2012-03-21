@@ -684,7 +684,8 @@ void nsPluginInstance::Show()
 
 void nsPluginInstance::Disconnect()
 {
-    kill(m_pid_controller, SIGTERM);
+    if (m_pid_controller > 0)
+        kill(m_pid_controller, SIGTERM);
 }
 
 void nsPluginInstance::ConnectedStatus(PRInt32 *retval)
