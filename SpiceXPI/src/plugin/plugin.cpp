@@ -194,6 +194,7 @@ nsPluginInstance::nsPluginInstance(NPP aInstance):
     m_admin_console(PR_FALSE),
     m_no_taskmgr_execution(PR_FALSE),
     m_send_ctrlaltdel(PR_TRUE),
+    m_usb_auto_share(PR_TRUE),
     m_scriptable_peer(NULL)
 {
     // create temporary directory in /tmp
@@ -231,6 +232,7 @@ NPBool nsPluginInstance::init(NPWindow *aWindow)
     m_number_of_monitors.clear();
     m_guest_host_name.clear();
     m_hot_keys.clear();
+    m_usb_filter.clear();
     m_language.clear();
     m_trust_store_file.clear();
     m_color_depth.clear();
@@ -479,17 +481,12 @@ void nsPluginInstance::SetUsbListenPort(unsigned short aUsbPort)
 /* attribute boolean UsbAutoShare; */
 PRBool nsPluginInstance::GetUsbAutoShare() const
 {
-    // this method exists due to RHEVM 2.2
-    // and should be removed some time in future,
-    // when fixed in RHEVM
-    return false;
+    return m_usb_auto_share;
 }
 
 void nsPluginInstance::SetUsbAutoShare(PRBool aUsbAutoShare)
 {
-    // this method exists due to RHEVM 2.2
-    // and should be removed some time in future,
-    // when fixed in RHEVM
+    m_usb_auto_share = aUsbAutoShare;
 }
 
 /* attribute string ColorDepth; */
@@ -683,6 +680,8 @@ void nsPluginInstance::Connect()
         SendStr(CONTROLLER_TLS_CIPHERS, m_cipher_suite.c_str());
         SendStr(CONTROLLER_SET_TITLE, m_title.c_str());
         SendBool(CONTROLLER_SEND_CAD, m_send_ctrlaltdel);
+        SendBool(CONTROLLER_ENABLE_USB_AUTOSHARE, m_usb_auto_share);
+        SendStr(CONTROLLER_USB_FILTER, m_usb_filter.c_str());
 
         /*
          * HACK -- remove leading s from m_SSLChannels, e.g. "main" not "smain"
@@ -741,9 +740,8 @@ void nsPluginInstance::SetLanguageStrings(const char *aSection, const char *aLan
 
 void nsPluginInstance::SetUsbFilter(const char *aUsbFilter)
 {
-    // this method exists due to RHEVM 2.2
-    // and should be removed some time in future,
-    // when fixed in RHEVM
+    if (aUsbFilter != NULL)
+        m_usb_filter = aUsbFilter;
 }
 
 void nsPluginInstance::CallOnDisconnected(int code)

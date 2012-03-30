@@ -208,6 +208,8 @@ private:
     std::string m_hot_keys;
     PRBool m_no_taskmgr_execution;
     PRBool m_send_ctrlaltdel;
+    std::string m_usb_filter;
+    PRBool m_usb_auto_share;
     std::map<std::string, std::string> m_language;
     std::string m_color_depth;
     std::string m_disable_effects;
