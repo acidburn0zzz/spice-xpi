@@ -114,6 +114,8 @@ function setConnectVars()
 	if(document.getElementById("UsbListenPortToggled").checked == true) { embed.UsbListenPort = parseInt( document.getElementById("UsbListenPort").value ); } else { embed.UsbListenPort = ""; }
 	if(document.getElementById("UsbAutoShareToggled").checked == true) { embed.UsbAutoShare = document.getElementById("UsbAutoShare").checked; } else { embed.UsbAutoShare = ""; }
 	if(document.getElementById("SmartcardToggled").checked == true) { embed.Smartcard = document.getElementById("Smartcard").checked; } else { embed.Smartcard = ""; }
+	if(document.getElementById("ColorDepthToggled").checked == true) { embed.ColorDepth = document.getElementById("ColorDepth").value; } else { embed.ColorDepth = ""; }
+	if(document.getElementById("DisableEffectsToggled").checked == true) { embed.DisableEffects = document.getElementById("DisableEffects").value; } else { embed.DisableEffects = ""; }
 }
 
 function show()
@@ -240,6 +242,16 @@ function toggle(checkboxID)
 <td><input type="checkbox" id="SmartcardToggled" onclick="toggle('SmartcardToggled', 'Smartcard')" checked /></td>
 <td>Smartcard:</td>
 <td> <input id="Smartcard" type="checkbox" /></td>
+</tr>
+<tr>
+<td><input type="checkbox" id="ColorDepthToggled" onclick="toggle('ColorDepthToggled', 'ColorDepth')" /></td>
+<td>Color Depth:</td>
+<td> <input id="ColorDepth" type="text" size="30" disabled /></td>
+</tr>
+<tr>
+<td><input type="checkbox" id="DisableEffectsToggled" onclick="toggle('DisableEffectsToggled', 'DisableEffects')" /></td>
+<td>Disable Effects:</td>
+<td> <input id="DisableEffects" type="text" size="30" disabled /></td>
 </tr>
 <tr>
 <td><input type="checkbox" id="LanguageStringsSectionToggled" onclick="toggle('LanguageStringsSectionToggled', 'LanguageStringsSection')" checked /></td>

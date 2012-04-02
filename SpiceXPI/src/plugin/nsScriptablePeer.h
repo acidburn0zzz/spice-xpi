@@ -96,6 +96,8 @@ private:
     static NPIdentifier m_id_send_ctrlaltdel;
     static NPIdentifier m_id_usb_listen_port;
     static NPIdentifier m_id_usb_auto_share;
+    static NPIdentifier m_id_color_depth;
+    static NPIdentifier m_id_disable_effects;
     static NPIdentifier m_id_connect;
     static NPIdentifier m_id_show;
     static NPIdentifier m_id_disconnect;

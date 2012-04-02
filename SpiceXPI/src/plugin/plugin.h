@@ -159,7 +159,15 @@ public:
     /* attribute boolean UsbAutoShare; */
     PRBool GetUsbAutoShare() const;
     void SetUsbAutoShare(PRBool aUsbAutoShare);
+
+    /* attribute ing color depth; */
+    char *GetColorDepth() const;
+    void SetColorDepth(const char *aColorDepth);
     
+    /* attribute ing disable effects; */
+    char *GetDisableEffects() const;
+    void SetDisableEffects(const char *aDisableEffects);
+
     NPObject *GetScriptablePeer();
     
 private:
@@ -202,6 +210,8 @@ private:
     PRBool m_no_taskmgr_execution;
     PRBool m_send_ctrlaltdel;
     std::map<std::string, std::string> m_language;
+    std::string m_color_depth;
+    std::string m_disable_effects;
     
     NPObject *m_scriptable_peer;
     std::string m_tmp_dir;

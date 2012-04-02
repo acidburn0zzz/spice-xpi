@@ -79,6 +79,8 @@ NPIdentifier ScriptablePluginObject::m_id_no_taskmgr_execution;
 NPIdentifier ScriptablePluginObject::m_id_send_ctrlaltdel;
 NPIdentifier ScriptablePluginObject::m_id_usb_listen_port;
 NPIdentifier ScriptablePluginObject::m_id_usb_auto_share;
+NPIdentifier ScriptablePluginObject::m_id_color_depth;
+NPIdentifier ScriptablePluginObject::m_id_disable_effects;
 NPIdentifier ScriptablePluginObject::m_id_connect;
 NPIdentifier ScriptablePluginObject::m_id_show;
 NPIdentifier ScriptablePluginObject::m_id_disconnect;
@@ -129,6 +131,8 @@ void ScriptablePluginObject::Init()
     m_id_send_ctrlaltdel = NPN_GetStringIdentifier("SendCtrlAltDelete");
     m_id_usb_listen_port = NPN_GetStringIdentifier("UsbListenPort");
     m_id_usb_auto_share = NPN_GetStringIdentifier("UsbAutoShare");
+    m_id_color_depth = NPN_GetStringIdentifier("ColorDepth");
+    m_id_disable_effects = NPN_GetStringIdentifier("DisableEffects");
     m_id_connect = NPN_GetStringIdentifier("connect");
     m_id_show = NPN_GetStringIdentifier("show");
     m_id_disconnect = NPN_GetStringIdentifier("disconnect");
@@ -170,7 +174,9 @@ bool ScriptablePluginObject::HasProperty(NPIdentifier name)
            name == m_id_no_taskmgr_execution ||
            name == m_id_send_ctrlaltdel ||
            name == m_id_usb_listen_port ||
-           name == m_id_usb_auto_share);
+           name == m_id_usb_auto_share ||
+           name == m_id_color_depth ||
+           name == m_id_disable_effects);
 }
 
 bool ScriptablePluginObject::GetProperty(NPIdentifier name, NPVariant *result)
@@ -220,6 +226,10 @@ bool ScriptablePluginObject::GetProperty(NPIdentifier name, NPVariant *result)
         INT32_TO_NPVARIANT(m_plugin->GetUsbListenPort(), *result);
     else if (name == m_id_usb_auto_share)
         BOOLEAN_TO_NPVARIANT(m_plugin->GetUsbAutoShare(), *result);
+    else if (name == m_id_color_depth)
+        STRINGZ_TO_NPVARIANT(m_plugin->GetColorDepth(), *result);
+    else if (name == m_id_disable_effects)
+        STRINGZ_TO_NPVARIANT(m_plugin->GetDisableEffects(), *result);
     else
         return false;
 
@@ -296,6 +306,10 @@ bool ScriptablePluginObject::SetProperty(NPIdentifier name, const NPVariant *val
         m_plugin->SetUsbListenPort(val);
     else if (name == m_id_usb_auto_share)
         m_plugin->SetUsbAutoShare(boolean);
+    else if (name == m_id_color_depth)
+        m_plugin->SetColorDepth(str.c_str());
+    else if (name == m_id_disable_effects)
+        m_plugin->SetDisableEffects(str.c_str());
     else
         return false;
 

@@ -61,6 +61,8 @@ interface nsISpicec : nsISupports {
     attribute unsigned short UsbListenPort;
     attribute boolean UsbAutoShare;
     attribute boolean Smartcard;
+    attribute string ColorDepth;
+    attribute string DisableEffects;
 
     void connect();
     void show();

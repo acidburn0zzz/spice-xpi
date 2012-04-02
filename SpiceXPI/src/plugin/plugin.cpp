@@ -225,6 +225,8 @@ NPBool nsPluginInstance::init(NPWindow *aWindow)
     m_dynamic_menu.clear();
     m_number_of_monitors.clear();
     m_guest_host_name.clear();
+    m_color_depth.clear();
+    m_disable_effects.clear();
 
     m_fullscreen = PR_FALSE;
     m_smartcard = PR_FALSE;
@@ -482,6 +484,28 @@ void nsPluginInstance::SetUsbAutoShare(PRBool aUsbAutoShare)
     // when fixed in RHEVM
 }
 
+/* attribute string ColorDepth; */
+char *nsPluginInstance::GetColorDepth() const
+{
+    return stringCopy(m_color_depth);
+}
+
+void nsPluginInstance::SetColorDepth(const char *aColorDepth)
+{
+    m_color_depth = aColorDepth;
+}
+
+/* attribute string DisableEffects; */
+char *nsPluginInstance::GetDisableEffects() const
+{
+    return stringCopy(m_disable_effects);
+}
+
+void nsPluginInstance::SetDisableEffects(const char *aDisableEffects)
+{
+    m_disable_effects = aDisableEffects;
+}
+
 void nsPluginInstance::WriteToPipe(const void *data, uint32_t size)
 {
     m_external_controller.Write(data, size);
@@ -668,6 +692,8 @@ void nsPluginInstance::Connect()
         SendStr(CONTROLLER_CA_FILE, m_trust_store_file.c_str());
         SendStr(CONTROLLER_HOST_SUBJECT, m_host_subject.c_str());
         SendStr(CONTROLLER_HOTKEYS, m_hot_keys.c_str());
+        SendValue(CONTROLLER_COLOR_DEPTH, atoi(m_color_depth.c_str()));
+        SendStr(CONTROLLER_DISABLE_EFFECTS, m_disable_effects.c_str());
         SendMsg(CONTROLLER_CONNECT);
         SendMsg(CONTROLLER_SHOW);
 
