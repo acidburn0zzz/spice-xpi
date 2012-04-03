@@ -641,7 +641,9 @@ void nsPluginInstance::Connect()
         FILE *fp;
         int fd = -1;
         char trust_store_template[] = "/tmp/truststore.pem-XXXXXX";
+        mode_t prev_umask = umask(0177);
         fd = mkstemp(trust_store_template);
+        umask(prev_umask);
         m_trust_store_file = trust_store_template;
 
         if (fd != -1)
