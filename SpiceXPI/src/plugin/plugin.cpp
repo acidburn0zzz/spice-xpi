@@ -328,6 +328,20 @@ char *nsPluginInstance::GetSSLChannels() const
 void nsPluginInstance::SetSSLChannels(const char *aSSLChannels)
 {
     m_ssl_channels = aSSLChannels;
+
+    /*
+     * HACK -- remove leading s from m_SSLChannels, e.g. "main" not "smain"
+     * RHEL5 uses 'smain' and 'sinpusts
+     * RHEL6 uses 'main'  and 'inputs'
+     */
+    std::size_t found = 0;
+    while ((found = m_ssl_channels.find("smain", found)) != std::string::npos)
+        m_ssl_channels.replace(found, 5, "main");
+
+    found = 0;
+    while ((found = m_ssl_channels.find("sinputs", found)) != std::string::npos)
+        m_ssl_channels.replace(found, 7, "inputs");
+    /* HACK */
 }
 
 //* attribute string TrustStore; */
@@ -682,21 +696,6 @@ void nsPluginInstance::Connect()
         SendBool(CONTROLLER_SEND_CAD, m_send_ctrlaltdel);
         SendBool(CONTROLLER_ENABLE_USB_AUTOSHARE, m_usb_auto_share);
         SendStr(CONTROLLER_USB_FILTER, m_usb_filter.c_str());
-
-        /*
-         * HACK -- remove leading s from m_SSLChannels, e.g. "main" not "smain"
-         * RHEL5 uses 'smain' and 'sinpusts
-         * RHEL6 uses 'main'  and 'inputs'
-         */
-        std::size_t found = 0;
-        while ((found = m_ssl_channels.find("smain", found)) != std::string::npos)
-            m_ssl_channels.replace(found, 5, "main");
-
-        found = 0;
-        while ((found = m_ssl_channels.find("sinputs", found)) != std::string::npos)
-            m_ssl_channels.replace(found, 7, "inputs");
-        /* HACK */
-
         SendStr(CONTROLLER_SECURE_CHANNELS, m_ssl_channels.c_str());
         SendStr(CONTROLLER_CA_FILE, m_trust_store_file.c_str());
         SendStr(CONTROLLER_HOST_SUBJECT, m_host_subject.c_str());
