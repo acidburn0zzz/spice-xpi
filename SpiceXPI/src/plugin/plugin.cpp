@@ -185,15 +185,20 @@ void NS_DestroyPluginInstance(nsPluginInstanceBase *aPlugin)
 nsPluginInstance::nsPluginInstance(NPP aInstance):
     nsPluginInstanceBase(),
     m_pid_controller(-1),
+    m_connected_status(-2),
     m_instance(aInstance),
-    m_initialized(PR_FALSE),
+    m_initialized(PR_TRUE),
+    m_window(NULL),
+    m_fullscreen(PR_FALSE),
+    m_smartcard(PR_FALSE),
+    m_admin_console(PR_FALSE),
+    m_no_taskmgr_execution(PR_FALSE),
+    m_send_ctrlaltdel(PR_TRUE),
     m_scriptable_peer(NULL)
 {
     // create temporary directory in /tmp
     char tmp_dir[] = "/tmp/spicec-XXXXXX";
     m_tmp_dir = mkdtemp(tmp_dir);
-
-    m_connected_status = -2;
 }
 
 nsPluginInstance::~nsPluginInstance()
@@ -225,6 +230,9 @@ NPBool nsPluginInstance::init(NPWindow *aWindow)
     m_dynamic_menu.clear();
     m_number_of_monitors.clear();
     m_guest_host_name.clear();
+    m_hot_keys.clear();
+    m_language.clear();
+    m_trust_store_file.clear();
     m_color_depth.clear();
     m_disable_effects.clear();
 
