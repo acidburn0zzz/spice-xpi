@@ -572,21 +572,6 @@ void nsPluginInstance::SendStr(uint32_t id, std::string str)
     free(msg);
 }
 
-void nsPluginInstance::SendWStr(uint32_t id, const wchar_t *str)
-{
-    size_t len = wcslen(str);
-    if (!len)
-        return;
-
-    size_t size = sizeof(ControllerData) + (len + 1) * sizeof(wchar_t);
-    ControllerData *msg = static_cast<ControllerData *>(malloc(size));
-    msg->base.id = id;
-    msg->base.size = size;
-    wcscpy(reinterpret_cast<wchar_t *>(msg->data), str);
-    WriteToPipe(msg, size);
-    free(msg);
-}
-
 void nsPluginInstance::Connect()
 {
     std::string socket_file(m_tmp_dir);
