@@ -116,6 +116,7 @@ function setConnectVars()
 	if(document.getElementById("SmartcardToggled").checked == true) { embed.Smartcard = document.getElementById("Smartcard").checked; } else { embed.Smartcard = ""; }
 	if(document.getElementById("ColorDepthToggled").checked == true) { embed.ColorDepth = document.getElementById("ColorDepth").value; } else { embed.ColorDepth = ""; }
 	if(document.getElementById("DisableEffectsToggled").checked == true) { embed.DisableEffects = document.getElementById("DisableEffects").value; } else { embed.DisableEffects = ""; }
+	setUsbFilter()
 }
 
 function show()
