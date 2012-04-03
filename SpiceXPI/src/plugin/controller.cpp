@@ -96,6 +96,8 @@ int SpiceController::Connect()
 
     struct sockaddr_un remote;
     remote.sun_family = AF_UNIX;
+    if (m_name.length() + 1 > sizeof(remote.sun_path))
+        return -1;
     strcpy(remote.sun_path, m_name.c_str());
 
     int rc = connect(m_client_socket, (struct sockaddr *) &remote, strlen(remote.sun_path) + sizeof(remote.sun_family));
