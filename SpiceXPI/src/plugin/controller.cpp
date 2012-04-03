@@ -146,7 +146,7 @@ uint32_t SpiceController::Write(const void *lpBuffer, uint32_t nBytesToWrite)
 
     if (len != (ssize_t)nBytesToWrite)
     {
-        g_warning("incomplete send, bytes to write = %lu, bytes written = %d: %s",
+        g_warning("incomplete send, bytes to write = %u, bytes written = %zd: %s",
                   nBytesToWrite, len, g_strerror(errno));
     }
 
