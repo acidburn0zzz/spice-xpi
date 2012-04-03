@@ -558,16 +558,16 @@ void nsPluginInstance::SendBool(uint32_t id, bool value)
     WriteToPipe(&msg, sizeof(msg));
 }
 
-void nsPluginInstance::SendStr(uint32_t id, const char *str)
+void nsPluginInstance::SendStr(uint32_t id, std::string str)
 {
-    if (!strlen(str))
+    if (str.empty())
         return;
 
-    size_t size = sizeof(ControllerData) + strlen(str) + 1;
+    size_t size = sizeof(ControllerData) + str.size() + 1;
     ControllerData *msg = static_cast<ControllerData *>(malloc(size));
     msg->base.id = id;
     msg->base.size = size;
-    strcpy(reinterpret_cast<char *>(msg->data), str);
+    strcpy(reinterpret_cast<char *>(msg->data), str.c_str());
     WriteToPipe(msg, size);
     free(msg);
 }
@@ -683,25 +683,25 @@ void nsPluginInstance::Connect()
         }
 
         SendInit();
-        SendStr(CONTROLLER_HOST, m_host_ip.c_str());
+        SendStr(CONTROLLER_HOST, m_host_ip);
         SendValue(CONTROLLER_PORT, atoi(m_port.c_str()));
         SendValue(CONTROLLER_SPORT, atoi(m_secure_port.c_str()));
         SendValue(CONTROLLER_FULL_SCREEN,
                    (m_fullscreen == PR_TRUE ? CONTROLLER_SET_FULL_SCREEN : 0) |
                    (m_admin_console == PR_FALSE ? CONTROLLER_AUTO_DISPLAY_RES : 0));
         SendBool(CONTROLLER_ENABLE_SMARTCARD, m_smartcard);
-        SendStr(CONTROLLER_PASSWORD, m_password.c_str());
-        SendStr(CONTROLLER_TLS_CIPHERS, m_cipher_suite.c_str());
-        SendStr(CONTROLLER_SET_TITLE, m_title.c_str());
+        SendStr(CONTROLLER_PASSWORD, m_password);
+        SendStr(CONTROLLER_TLS_CIPHERS, m_cipher_suite);
+        SendStr(CONTROLLER_SET_TITLE, m_title);
         SendBool(CONTROLLER_SEND_CAD, m_send_ctrlaltdel);
         SendBool(CONTROLLER_ENABLE_USB_AUTOSHARE, m_usb_auto_share);
-        SendStr(CONTROLLER_USB_FILTER, m_usb_filter.c_str());
-        SendStr(CONTROLLER_SECURE_CHANNELS, m_ssl_channels.c_str());
-        SendStr(CONTROLLER_CA_FILE, m_trust_store_file.c_str());
-        SendStr(CONTROLLER_HOST_SUBJECT, m_host_subject.c_str());
-        SendStr(CONTROLLER_HOTKEYS, m_hot_keys.c_str());
+        SendStr(CONTROLLER_USB_FILTER, m_usb_filter);
+        SendStr(CONTROLLER_SECURE_CHANNELS, m_ssl_channels);
+        SendStr(CONTROLLER_CA_FILE, m_trust_store_file);
+        SendStr(CONTROLLER_HOST_SUBJECT, m_host_subject);
+        SendStr(CONTROLLER_HOTKEYS, m_hot_keys);
         SendValue(CONTROLLER_COLOR_DEPTH, atoi(m_color_depth.c_str()));
-        SendStr(CONTROLLER_DISABLE_EFFECTS, m_disable_effects.c_str());
+        SendStr(CONTROLLER_DISABLE_EFFECTS, m_disable_effects);
         SendMsg(CONTROLLER_CONNECT);
         SendMsg(CONTROLLER_SHOW);
 
