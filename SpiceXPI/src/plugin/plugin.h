@@ -190,7 +190,6 @@ private:
     NPBool m_initialized;
     
     NPWindow *m_window;
-    PRBool m_fIPC;
     std::string m_host_ip;
     std::string m_port;
     std::string m_password;
