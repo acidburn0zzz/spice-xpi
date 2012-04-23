@@ -330,18 +330,24 @@ void nsPluginInstance::SetSSLChannels(const char *aSSLChannels)
     m_ssl_channels = aSSLChannels;
 
     /*
-     * HACK -- remove leading s from m_SSLChannels, e.g. "main" not "smain"
+     * Backward Compatibility: Begin
+     * Remove leading 's' from m_ssl_channels, e.g. "main" not "smain"
      * RHEL5 uses 'smain' and 'sinpusts
      * RHEL6 uses 'main'  and 'inputs'
      */
-    std::size_t found = 0;
-    while ((found = m_ssl_channels.find("smain", found)) != std::string::npos)
-        m_ssl_channels.replace(found, 5, "main");
+    const char* chan_names[] = {
+        "smain", "sdisplay", "sinputs",
+        "scursor", "splayback", "srecord"
+    };
+    const int nnames = sizeof(chan_names) / sizeof(chan_names[0]);
 
-    found = 0;
-    while ((found = m_ssl_channels.find("sinputs", found)) != std::string::npos)
-        m_ssl_channels.replace(found, 7, "inputs");
-    /* HACK */
+    for (int i = 0; i < nnames; i++) {
+        const char *name = chan_names[i];
+        size_t found = 0;
+        while ((found = m_ssl_channels.find(name, found)) != std::string::npos)
+            m_ssl_channels.replace(found, strlen(name), name + 1);
+    }
+    /* Backward Compatibility: End */
 }
 
 //* attribute string TrustStore; */
