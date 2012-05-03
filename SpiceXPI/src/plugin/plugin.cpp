@@ -598,6 +598,8 @@ void nsPluginInstance::Connect()
     m_pid_controller = fork();
     if (m_pid_controller == 0)
     {
+        setpgrp();
+
         close(pipe_fds[1]);
         pipe_fds[1] = -1;
 
@@ -710,7 +712,7 @@ void nsPluginInstance::Show()
 void nsPluginInstance::Disconnect()
 {
     if (m_pid_controller > 0)
-        kill(m_pid_controller, SIGTERM);
+        kill(-m_pid_controller, SIGTERM);
 }
 
 void nsPluginInstance::ConnectedStatus(PRInt32 *retval)
