@@ -337,7 +337,8 @@ void nsPluginInstance::SetSSLChannels(const char *aSSLChannels)
      */
     const char* chan_names[] = {
         "smain", "sdisplay", "sinputs",
-        "scursor", "splayback", "srecord"
+        "scursor", "splayback", "srecord",
+        "susbredir", "ssmartcard", "stunnel"
     };
     const int nnames = sizeof(chan_names) / sizeof(chan_names[0]);
 
