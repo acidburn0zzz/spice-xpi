@@ -1,0 +1,28 @@
+Spice-xpi test page generator
+=============================
+
+The main purpose of the generator is to automatically create
+a html page containing input elements and action buttons, that
+are read from interface description.
+
+Compilation
+===========
+
+To compile the generator, you have to enable it when configuring
+the while project (spice-xpi):
+
+./configure --enable-generator
+
+Usage
+=====
+
+The generator reads IDL from stdin or input file (supports the
+restricted part of an IDL grammar) and outputs the html content
+to stdout or to the file, if specified.
+
+The application supports these options:
+  -i, --input     input filename (stdin used, if not specified)
+  -o, --output    output filename (stdout used, if not specified)
+
+Example of the usage:
+  ./spice_xpi_generator -i nsISpicec.idl -o test-page.html

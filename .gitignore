@@ -23,6 +23,7 @@ Makefile.in
 nsISpicec.h
 nsISpicec.xpt
 SpiceXPI.xpi
+spice_xpi_generator
 stamp-h1
 *.o
 *.lo

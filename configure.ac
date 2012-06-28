@@ -88,6 +88,15 @@ fi
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
+AC_ARG_ENABLE([generator],
+  [AS_HELP_STRING([--enable-generator],
+                  [Enable compilation of a test page generator])],
+  [enable_generator="${enableval}"], [enable_generator="no"])
+AM_CONDITIONAL(BUILD_GENERATOR, test "x${enable_generator}" = "xyes")
+if test "x${enable_generator}" = "xyes"; then
+  AC_OUTPUT([generator/Makefile])
+fi
+
 AC_OUTPUT([
 Makefile
 data/Makefile
@@ -102,13 +111,14 @@ AC_MSG_NOTICE([
         Spice-XPI $VERSION
         ==============
 
-        prefix:                   ${prefix}
-        compiler:                 ${CC}
-        xpidl:			  ${XPIDL}
-        XUL includes:		  ${XUL_INCLUDEDIR}
-        XUL IDL files:	          ${XUL_IDLDIR}
+        prefix:                    ${prefix}
+        compiler:                  ${CC}
+        xpidl:			   ${XPIDL}
+        XUL includes:		   ${XUL_INCLUDEDIR}
+        XUL IDL files:	           ${XUL_IDLDIR}
+        Build test page generator: ${enable_generator}
 
-        Red target:               ${red_target}
+        Red target:                ${red_target}
 
         Now type 'make' to build $PACKAGE
 ])
