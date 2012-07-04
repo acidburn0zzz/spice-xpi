@@ -49,6 +49,7 @@ interface nsISpicec : nsISupports {
     attribute string Password;
     attribute string CipherSuite;
     attribute string SSLChannels;
+    attribute string HostSubject;
     attribute boolean fullScreen;
     attribute boolean AdminConsole;
     attribute string Title;
@@ -63,6 +64,7 @@ interface nsISpicec : nsISupports {
     attribute boolean Smartcard;
     attribute string ColorDepth;
     attribute string DisableEffects;
+    attribute string TrustStore;
 
     void connect();
     void show();
