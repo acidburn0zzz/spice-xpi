@@ -30,7 +30,7 @@ Options::Options(int argc, char **argv):
     static struct option longopts[] = {
         { "input",  required_argument, NULL, 'i' },
         { "output", required_argument, NULL, 'o' },
-        { "help",   required_argument, NULL, 'h' },
+        { "help",   no_argument,       NULL, 'h' },
         { NULL,     0,                 NULL,  0  }
     };
 
