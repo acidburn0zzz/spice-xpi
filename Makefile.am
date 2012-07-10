@@ -1,9 +1,10 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = SpiceXPI data
+SUBDIRS = SpiceXPI
 if BUILD_GENERATOR
 SUBDIRS += generator
 endif
+SUBDIRS += data
 DIST_SUBDIRS = spice-protocol $(SUBDIRS)
 
 EXTRA_DIST = m4
