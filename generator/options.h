@@ -37,6 +37,7 @@ private:
     bool m_good;
     std::string m_input_filename;
     std::string m_output_filename;
+    const std::string m_bin_name;
 };
 
 #endif // OPTIONS_H

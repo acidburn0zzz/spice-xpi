@@ -1,4 +1,4 @@
-bin_PROGRAMS                = spice_xpi_generator
+bin_PROGRAMS                = spice-xpi-generator
 spice_xpi_generator_SOURCES =      \
 		generator.cpp      \
 		main.cpp           \

@@ -16,6 +16,7 @@
 * ***** END LICENSE BLOCK ***** */
 
 #include <iostream>
+#include <cstring>
 extern "C" {
 #  include <getopt.h>
 }
@@ -25,7 +26,8 @@ Options::Options(int argc, char **argv):
     m_help(false),
     m_good(true),
     m_input_filename(),
-    m_output_filename()
+    m_output_filename(),
+    m_bin_name(argv && argv[0] ? basename(argv[0]) : "spice-xpi-generator")
 {
     static struct option longopts[] = {
         { "input",  required_argument, NULL, 'i' },
@@ -60,7 +62,7 @@ Options::~Options()
 void Options::printHelp() const
 {
     std::cout << "Spice-xpi test page generator\n\n"
-              << "Usage: ./generator [-h] [-i input] [-o output]\n\n"
+              << "Usage: " << m_bin_name << " [-h] [-i input] [-o output]\n\n"
               << "Application options:\n"
               << "  -i, --input     input filename (stdin used, if not specified)\n"
               << "  -o, --output    output filename (stdout used, if not specified)\n"
