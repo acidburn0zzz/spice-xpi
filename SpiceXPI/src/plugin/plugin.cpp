@@ -106,6 +106,18 @@ namespace {
 
         return dest;
     }
+    
+    // helper function for tcp/udp range conversion and validation
+    static int portToInt(const std::string &port)
+    {
+        errno = 0;
+        char *end;
+        const long int min = 0;
+        const long int max = 65535;
+        long int conv = strtol(port.c_str(), &end, 10);
+        return (errno || *end != '\0' || end == port.c_str() || conv < min || conv > max)
+            ? -1 : static_cast<int>(conv);
+    }
 }
 
 #ifdef NPAPI_USE_CONSTCHARS
@@ -581,6 +593,19 @@ void nsPluginInstance::SendStr(uint32_t id, std::string str)
 
 void nsPluginInstance::Connect()
 {
+    const int port = portToInt(m_port);
+    const int sport = portToInt(m_secure_port);
+    if (port < 0)
+        g_warning("invalid port: '%s'", m_port.c_str());
+    if (sport < 0)
+        g_warning("invalid secure port: '%s'", m_secure_port.c_str());
+    if (port <= 0 && sport <= 0)
+    {
+        m_connected_status = 1;
+        CallOnDisconnected(m_connected_status);
+        return;
+    }
+
     std::string socket_file(m_tmp_dir);
     socket_file += "/spice-xpi";
     if (setenv("SPICE_XPI_SOCKET", socket_file.c_str(), 1))
@@ -678,8 +703,10 @@ void nsPluginInstance::Connect()
 
         SendInit();
         SendStr(CONTROLLER_HOST, m_host_ip);
-        SendValue(CONTROLLER_PORT, atoi(m_port.c_str()));
-        SendValue(CONTROLLER_SPORT, atoi(m_secure_port.c_str()));
+        if (port > 0)
+            SendValue(CONTROLLER_PORT, port);
+        if (sport > 0)
+            SendValue(CONTROLLER_SPORT, sport);
         SendValue(CONTROLLER_FULL_SCREEN,
                    (m_fullscreen == PR_TRUE ? CONTROLLER_SET_FULL_SCREEN : 0) |
                    (m_admin_console == PR_FALSE ? CONTROLLER_AUTO_DISPLAY_RES : 0));
