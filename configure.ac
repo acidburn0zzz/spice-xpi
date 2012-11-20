@@ -91,15 +91,13 @@ m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AC_ARG_ENABLE([generator],
   [AS_HELP_STRING([--enable-generator],
                   [Enable compilation of a test page generator])],
-  [enable_generator="${enableval}"], [enable_generator="no"])
-AM_CONDITIONAL(BUILD_GENERATOR, test "x${enable_generator}" = "xyes")
-if test "x${enable_generator}" = "xyes"; then
-  AC_OUTPUT([generator/Makefile])
-fi
+  [enable_generator=true], [enable_generator=false])
+AM_CONDITIONAL([BUILD_GENERATOR], [test x$enable_generator = xtrue])
 
 AC_OUTPUT([
 Makefile
 data/Makefile
+generator/Makefile
 SpiceXPI/Makefile
 SpiceXPI/src/Makefile
 SpiceXPI/src/plugin/Makefile
