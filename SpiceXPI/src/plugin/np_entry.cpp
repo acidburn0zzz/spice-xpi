@@ -45,6 +45,7 @@
 // Main plugin entry point implementation -- exports from the
 // plugin library
 //
+#include <string.h>
 #include "npplat.h"
 #include "pluginbase.h"
 
@@ -111,53 +112,10 @@ static NPError fillNetscapeFunctionTable(NPNetscapeFuncs *aNPNFuncs)
     if (HIBYTE(aNPNFuncs->version) > NP_VERSION_MAJOR)
         return NPERR_INCOMPATIBLE_VERSION_ERROR;
 
-    if (aNPNFuncs->size < sizeof(NPNetscapeFuncs))
-        return NPERR_INVALID_FUNCTABLE_ERROR;
-
-    NPNFuncs.size                    = aNPNFuncs->size;
-    NPNFuncs.version                 = aNPNFuncs->version;
-    NPNFuncs.geturlnotify            = aNPNFuncs->geturlnotify;
-    NPNFuncs.geturl                  = aNPNFuncs->geturl;
-    NPNFuncs.posturlnotify           = aNPNFuncs->posturlnotify;
-    NPNFuncs.posturl                 = aNPNFuncs->posturl;
-    NPNFuncs.requestread             = aNPNFuncs->requestread;
-    NPNFuncs.newstream               = aNPNFuncs->newstream;
-    NPNFuncs.write                   = aNPNFuncs->write;
-    NPNFuncs.destroystream           = aNPNFuncs->destroystream;
-    NPNFuncs.status                  = aNPNFuncs->status;
-    NPNFuncs.uagent                  = aNPNFuncs->uagent;
-    NPNFuncs.memalloc                = aNPNFuncs->memalloc;
-    NPNFuncs.memfree                 = aNPNFuncs->memfree;
-    NPNFuncs.memflush                = aNPNFuncs->memflush;
-    NPNFuncs.reloadplugins           = aNPNFuncs->reloadplugins;
-    NPNFuncs.getvalue                = aNPNFuncs->getvalue;
-    NPNFuncs.setvalue                = aNPNFuncs->setvalue;
-    NPNFuncs.invalidaterect          = aNPNFuncs->invalidaterect;
-    NPNFuncs.invalidateregion        = aNPNFuncs->invalidateregion;
-    NPNFuncs.forceredraw             = aNPNFuncs->forceredraw;
-    NPNFuncs.getstringidentifier     = aNPNFuncs->getstringidentifier;
-    NPNFuncs.getstringidentifiers    = aNPNFuncs->getstringidentifiers;
-    NPNFuncs.getintidentifier        = aNPNFuncs->getintidentifier;
-    NPNFuncs.identifierisstring      = aNPNFuncs->identifierisstring;
-    NPNFuncs.utf8fromidentifier      = aNPNFuncs->utf8fromidentifier;
-    NPNFuncs.intfromidentifier       = aNPNFuncs->intfromidentifier;
-    NPNFuncs.createobject            = aNPNFuncs->createobject;
-    NPNFuncs.retainobject            = aNPNFuncs->retainobject;
-    NPNFuncs.releaseobject           = aNPNFuncs->releaseobject;
-    NPNFuncs.invoke                  = aNPNFuncs->invoke;
-    NPNFuncs.invokeDefault           = aNPNFuncs->invokeDefault;
-    NPNFuncs.evaluate                = aNPNFuncs->evaluate;
-    NPNFuncs.getproperty             = aNPNFuncs->getproperty;
-    NPNFuncs.setproperty             = aNPNFuncs->setproperty;
-    NPNFuncs.removeproperty          = aNPNFuncs->removeproperty;
-    NPNFuncs.hasproperty             = aNPNFuncs->hasproperty;
-    NPNFuncs.hasmethod               = aNPNFuncs->hasmethod;
-    NPNFuncs.releasevariantvalue     = aNPNFuncs->releasevariantvalue;
-    NPNFuncs.setexception            = aNPNFuncs->setexception;
-#ifdef OJI
-    NPNFuncs.getJavaEnv              = aNPNFuncs->getJavaEnv;
-    NPNFuncs.getJavaPeer             = aNPNFuncs->getJavaPeer;
-#endif
+    memset(&NPNFuncs, 0, sizeof(NPNetscapeFuncs));
+    memmove(&NPNFuncs, aNPNFuncs,
+            (aNPNFuncs->size < sizeof(NPNetscapeFuncs)) ?
+            aNPNFuncs->size : sizeof(NPNetscapeFuncs));
 
     return NPERR_NO_ERROR;
 }
