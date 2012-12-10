@@ -242,12 +242,14 @@ bool ScriptablePluginObject::SetProperty(NPIdentifier name, const NPVariant *val
         return false;
 
     std::string str;
+    std::stringstream ss;
     PRBool boolean = false;
     unsigned short val = -1;
 
     if (NPVARIANT_IS_STRING(*value))
     {
-        str = NPVARIANT_TO_STRING(*value).UTF8Characters;
+        str.assign(NPVARIANT_TO_STRING(*value).UTF8Characters,
+                   NPVARIANT_TO_STRING(*value).UTF8Length);
     }
     else if (NPVARIANT_IS_BOOLEAN(*value))
     {
@@ -256,8 +258,12 @@ bool ScriptablePluginObject::SetProperty(NPIdentifier name, const NPVariant *val
     else if (NPVARIANT_IS_INT32(*value))
     {
         val = NPVARIANT_TO_INT32(*value);
-
-        std::stringstream ss;
+        ss << val;
+        ss >> str;
+    }
+    else if (NPVARIANT_IS_DOUBLE(*value))
+    {
+        val = NPVARIANT_TO_DOUBLE(*value);
         ss << val;
         ss >> str;
     }
