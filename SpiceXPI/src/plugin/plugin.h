@@ -169,6 +169,10 @@ public:
     char *GetDisableEffects() const;
     void SetDisableEffects(const char *aDisableEffects);
 
+     /* attribute ing Proxy; */
+    char *GetProxy() const;
+    void SetProxy(const char *aProxy);
+
     NPObject *GetScriptablePeer();
     
 private:
@@ -213,6 +217,7 @@ private:
     std::map<std::string, std::string> m_language;
     std::string m_color_depth;
     std::string m_disable_effects;
+    std::string m_proxy;
     
     NPObject *m_scriptable_peer;
     std::string m_tmp_dir;

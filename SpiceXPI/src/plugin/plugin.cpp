@@ -249,6 +249,7 @@ NPBool nsPluginInstance::init(NPWindow *aWindow)
     m_trust_store_file.clear();
     m_color_depth.clear();
     m_disable_effects.clear();
+    m_proxy.clear();
 
     m_fullscreen = PR_FALSE;
     m_smartcard = PR_FALSE;
@@ -544,6 +545,17 @@ void nsPluginInstance::SetDisableEffects(const char *aDisableEffects)
     m_disable_effects = aDisableEffects;
 }
 
+/* attribute string Proxy; */
+char *nsPluginInstance::GetProxy() const
+{
+    return stringCopy(m_proxy);
+}
+
+void nsPluginInstance::SetProxy(const char *aProxy)
+{
+    m_proxy = aProxy;
+}
+
 void nsPluginInstance::WriteToPipe(const void *data, uint32_t size)
 {
     m_external_controller.Write(data, size);
@@ -633,6 +645,8 @@ void nsPluginInstance::Connect()
 
         gchar **env = g_get_environ();
         env = g_environ_setenv(env, "SPICE_XPI_SOCKET", socket_file.c_str(), TRUE);
+        if (!m_proxy.empty())
+            env = g_environ_setenv(env, "SPICE_PROXY", m_proxy.c_str(), TRUE);
 
         execle("/usr/libexec/spice-xpi-client",
                "/usr/libexec/spice-xpi-client", NULL,

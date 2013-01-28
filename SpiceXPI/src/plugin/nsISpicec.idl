@@ -65,6 +65,7 @@ interface nsISpicec : nsISupports {
     attribute string ColorDepth;
     attribute string DisableEffects;
     attribute string TrustStore;
+    attribute string Proxy;
 
     void connect();
     void show();

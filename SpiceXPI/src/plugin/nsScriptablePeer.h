@@ -105,6 +105,7 @@ private:
     static NPIdentifier m_id_set_usb_filter;
     static NPIdentifier m_id_connect_status;
     static NPIdentifier m_id_plugin_instance;
+    static NPIdentifier m_id_proxy;
 };
 
 #define DECLARE_NPOBJECT_CLASS_WITH_BASE(_class, ctor)                        \

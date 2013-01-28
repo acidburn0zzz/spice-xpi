@@ -88,6 +88,7 @@ NPIdentifier ScriptablePluginObject::m_id_set_language_strings;
 NPIdentifier ScriptablePluginObject::m_id_set_usb_filter;
 NPIdentifier ScriptablePluginObject::m_id_connect_status;
 NPIdentifier ScriptablePluginObject::m_id_plugin_instance;
+NPIdentifier ScriptablePluginObject::m_id_proxy;
 
 NPObject *AllocateScriptablePluginObject(NPP npp, NPClass *aClass)
 {
@@ -140,6 +141,7 @@ void ScriptablePluginObject::Init()
     m_id_set_usb_filter = NPN_GetStringIdentifier("SetUsbFilter");
     m_id_connect_status = NPN_GetStringIdentifier("ConnectedStatus");
     m_id_plugin_instance = NPN_GetStringIdentifier("PluginInstance");
+    m_id_proxy = NPN_GetStringIdentifier("Proxy");
     m_id_set = true;
 }
 
@@ -176,7 +178,8 @@ bool ScriptablePluginObject::HasProperty(NPIdentifier name)
            name == m_id_usb_listen_port ||
            name == m_id_usb_auto_share ||
            name == m_id_color_depth ||
-           name == m_id_disable_effects);
+           name == m_id_disable_effects ||
+           name == m_id_proxy);
 }
 
 bool ScriptablePluginObject::GetProperty(NPIdentifier name, NPVariant *result)
@@ -230,6 +233,8 @@ bool ScriptablePluginObject::GetProperty(NPIdentifier name, NPVariant *result)
         STRINGZ_TO_NPVARIANT(m_plugin->GetColorDepth(), *result);
     else if (name == m_id_disable_effects)
         STRINGZ_TO_NPVARIANT(m_plugin->GetDisableEffects(), *result);
+    else if (name == m_id_proxy)
+        STRINGZ_TO_NPVARIANT(m_plugin->GetProxy(), *result);
     else
         return false;
 
@@ -316,6 +321,8 @@ bool ScriptablePluginObject::SetProperty(NPIdentifier name, const NPVariant *val
         m_plugin->SetColorDepth(str.c_str());
     else if (name == m_id_disable_effects)
         m_plugin->SetDisableEffects(str.c_str());
+    else if (name == m_id_proxy)
+        m_plugin->SetProxy(str.c_str());
     else
         return false;
 
