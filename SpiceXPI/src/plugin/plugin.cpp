@@ -608,11 +608,6 @@ void nsPluginInstance::Connect()
 
     std::string socket_file(m_tmp_dir);
     socket_file += "/spice-xpi";
-    if (setenv("SPICE_XPI_SOCKET", socket_file.c_str(), 1))
-    {
-        g_critical("could not set SPICE_XPI_SOCKET env variable");
-        return;
-    }
 
     /* use a pipe for the children to wait until it gets tracked */
     int pipe_fds[2] = { -1, -1 };
@@ -636,13 +631,21 @@ void nsPluginInstance::Connect()
         close(pipe_fds[0]);
         pipe_fds[0] = -1;
 
-        execl("/usr/libexec/spice-xpi-client", "/usr/libexec/spice-xpi-client", NULL);
+        gchar **env = g_get_environ();
+        env = g_environ_setenv(env, "SPICE_XPI_SOCKET", socket_file.c_str(), TRUE);
+
+        execle("/usr/libexec/spice-xpi-client",
+               "/usr/libexec/spice-xpi-client", NULL,
+               env);
         g_message("failed to run spice-xpi-client, running spicec instead");
 
         // TODO: temporary fallback for backward compatibility
-        execl("/usr/bin/spicec", "/usr/bin/spicec", "--controller", NULL);
-        g_critical("ERROR failed to run spicec fallback");
+        execle("/usr/bin/spicec",
+               "/usr/bin/spicec", "--controller", NULL,
+               env);
 
+        g_critical("ERROR failed to run spicec fallback");
+        g_strfreev(env);
         exit(EXIT_FAILURE);
     }
     else
