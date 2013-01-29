@@ -58,6 +58,7 @@ extern "C" {
 #include "pluginbase.h"
 #include "controller.h"
 #include "common.h"
+#include "glib-compat.h"
 
 class nsPluginInstance: public nsPluginInstanceBase
 {
