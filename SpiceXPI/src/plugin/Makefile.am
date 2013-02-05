@@ -11,9 +11,9 @@ plugin_LTLIBRARIES = libnsISpicec.la
 libnsISpicec_la_LDFLAGS = -avoid-version -module
 libnsISpicec_la_CPPFLAGS =			\
 	-I$(top_srcdir)/common			\
+	-I$(srcdir)/npapi			\
 	$(GLIB_CFLAGS)				\
 	$(SPICE_PROTOCOL_CFLAGS)		\
-	$(XUL_CFLAGS)				\
 	-DG_LOG_DOMAIN=\"SpiceXPI\"		\
 	$(NULL)
 
@@ -28,6 +28,10 @@ libnsISpicec_la_SOURCES =			\
 	glib-compat.h				\
 	controller.cpp				\
 	controller.h				\
+	npapi/npapi.h				\
+	npapi/npfunctions.h			\
+	npapi/npruntime.h			\
+	npapi/nptypes.h				\
 	np_entry.cpp				\
 	npn_gate.cpp				\
 	npp_gate.cpp				\
