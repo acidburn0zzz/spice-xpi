@@ -10,11 +10,6 @@ plugin_LTLIBRARIES = libnsISpicec.la
 
 libnsISpicec_la_LDFLAGS = -avoid-version -module
 libnsISpicec_la_CPPFLAGS =			\
-	-I$(XUL_INCLUDEDIR)			\
-	-I$(XUL_INCLUDEDIR)/dom			\
-	-I$(XUL_INCLUDEDIR)/necko		\
-	-I$(XUL_INCLUDEDIR)/plugin		\
-	-I$(XUL_INCLUDEDIR)/string		\
 	-I$(top_srcdir)/common			\
 	$(GLIB_CFLAGS)				\
 	$(SPICE_PROTOCOL_CFLAGS)		\
@@ -29,7 +24,6 @@ libnsISpicec_la_CPPFLAGS =			\
 
 libnsISpicec_la_LIBADD =			\
 	$(GLIB_LIBS)				\
-	$(XUL_LIBS)				\
 	$(NULL)
 
 libnsISpicec_la_SOURCES =			\
