@@ -51,7 +51,6 @@
 // be callable from JavaScript
 //
 
-#include <nsError.h>
 #include <string.h>
 #include <sstream>
 #include "plugin.h"

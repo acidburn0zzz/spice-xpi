@@ -62,7 +62,6 @@ extern "C" {
 #include <signal.h>
 }
 
-#include "nsCOMPtr.h"
 
 // for plugins
 #ifndef XP_UNIX
@@ -77,9 +76,8 @@ extern "C" {
 static NS_DEFINE_CID(kPluginManagerCID, NS_PLUGINMANAGER_CID);
 #endif
 
-#include <nsIServiceManager.h>
-#include <nsISupportsUtils.h> // some usefule macros are defined here
 
+#include <cstring>
 #include <fstream>
 #include <set>
 
