@@ -249,7 +249,7 @@ bool ScriptablePluginObject::SetProperty(NPIdentifier name, const NPVariant *val
 
     std::string str;
     std::stringstream ss;
-    PRBool boolean = false;
+    bool boolean = false;
     unsigned short val = -1;
 
     if (NPVARIANT_IS_STRING(*value))
@@ -372,7 +372,7 @@ bool ScriptablePluginObject::Invoke(NPIdentifier name, const NPVariant *args,
     }
     else if (name == m_id_connect_status)
     {
-        PRInt32 ret;
+        int32_t ret;
         m_plugin->ConnectedStatus(&ret);
         INT32_TO_NPVARIANT(ret, *result);
         return true;

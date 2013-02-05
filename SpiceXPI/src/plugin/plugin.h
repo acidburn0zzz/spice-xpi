@@ -46,7 +46,6 @@
 #include <map>
 #include <string>
 
-#include <prtypes.h>
 #include <npapi.h>
 #include <npruntime.h>
 
@@ -77,7 +76,7 @@ public:
     void Connect();
     void Disconnect();
     void Show();
-    void ConnectedStatus(PRInt32 *retval);
+    void ConnectedStatus(int32_t *retval);
     void SetLanguageStrings(const char *aSection, const char *aLanguage);
     void SetUsbFilter(const char *aUsbFilter);
     
@@ -114,12 +113,12 @@ public:
     void SetHostSubject(const char *aHostSubject);
     
     /* attribute ing FullScreen; */
-    PRBool GetFullScreen() const;
-    void SetFullScreen(PRBool aFullScreen);
+    bool GetFullScreen() const;
+    void SetFullScreen(bool aFullScreen);
 
     /* attribute ing smartcard; */
-    PRBool GetSmartcard() const;
-    void SetSmartcard(PRBool aSmartcard);
+    bool GetSmartcard() const;
+    void SetSmartcard(bool aSmartcard);
     
     /* attribute ing Port; */
     char *GetTitle() const;
@@ -134,8 +133,8 @@ public:
     void SetNumberOfMonitors(const char *aNumberOfMonitors);
     
     /* attribute ing AdminConsole; */
-    PRBool GetAdminConsole() const;
-    void SetAdminConsole(PRBool aAdminConsole);
+    bool GetAdminConsole() const;
+    void SetAdminConsole(bool aAdminConsole);
     
     /* attribute ing GuestHostName; */
     char *GetGuestHostName() const;
@@ -146,20 +145,20 @@ public:
     void SetHotKeys(const char *aHotKeys);
     
     /* attribute ing NoTaskMgrExecution; */
-    PRBool GetNoTaskMgrExecution() const;
-    void SetNoTaskMgrExecution(PRBool aNoTaskMgrExecution);
+    bool GetNoTaskMgrExecution() const;
+    void SetNoTaskMgrExecution(bool aNoTaskMgrExecution);
     
     /* attribute ing SendCtrlAltDelete; */
-    PRBool GetSendCtrlAltDelete() const;
-    void SetSendCtrlAltDelete(PRBool aSendCtrlAltDelete);
+    bool GetSendCtrlAltDelete() const;
+    void SetSendCtrlAltDelete(bool aSendCtrlAltDelete);
     
     /* attribute unsigned short UsbListenPort; */
     unsigned short GetUsbListenPort() const;
     void SetUsbListenPort(unsigned short aUsbPort);
     
     /* attribute boolean UsbAutoShare; */
-    PRBool GetUsbAutoShare() const;
-    void SetUsbAutoShare(PRBool aUsbAutoShare);
+    bool GetUsbAutoShare() const;
+    void SetUsbAutoShare(bool aUsbAutoShare);
 
     /* attribute ing color depth; */
     char *GetColorDepth() const;
@@ -187,7 +186,7 @@ private:
   
 private:
     pid_t m_pid_controller;
-    PRInt32 m_connected_status;
+    int32_t m_connected_status;
     SpiceController m_external_controller;
 
     NPP m_instance;
@@ -202,18 +201,18 @@ private:
     std::string m_ssl_channels;
     std::string m_trust_store;
     std::string m_host_subject;
-    PRBool m_fullscreen;
-    PRBool m_smartcard;
-    PRBool m_admin_console;
+    bool m_fullscreen;
+    bool m_smartcard;
+    bool m_admin_console;
     std::string m_title;
     std::string m_dynamic_menu;
     std::string m_number_of_monitors;
     std::string m_guest_host_name;
     std::string m_hot_keys;
-    PRBool m_no_taskmgr_execution;
-    PRBool m_send_ctrlaltdel;
+    bool m_no_taskmgr_execution;
+    bool m_send_ctrlaltdel;
     std::string m_usb_filter;
-    PRBool m_usb_auto_share;
+    bool m_usb_auto_share;
     std::map<std::string, std::string> m_language;
     std::string m_color_depth;
     std::string m_disable_effects;

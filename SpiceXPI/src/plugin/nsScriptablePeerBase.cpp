@@ -41,7 +41,6 @@
 
 #include "config.h"
 
-#include <prtypes.h>
 #include <npapi.h>
 #include <npruntime.h>
 #include "nsScriptablePeerBase.h"

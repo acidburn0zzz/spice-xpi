@@ -182,14 +182,14 @@ nsPluginInstance::nsPluginInstance(NPP aInstance):
     m_pid_controller(-1),
     m_connected_status(-2),
     m_instance(aInstance),
-    m_initialized(PR_TRUE),
+    m_initialized(true),
     m_window(NULL),
-    m_fullscreen(PR_FALSE),
-    m_smartcard(PR_FALSE),
-    m_admin_console(PR_FALSE),
-    m_no_taskmgr_execution(PR_FALSE),
-    m_send_ctrlaltdel(PR_TRUE),
-    m_usb_auto_share(PR_TRUE),
+    m_fullscreen(false),
+    m_smartcard(false),
+    m_admin_console(false),
+    m_no_taskmgr_execution(false),
+    m_send_ctrlaltdel(true),
+    m_usb_auto_share(true),
     m_scriptable_peer(NULL)
 {
     // create temporary directory in /tmp
@@ -212,7 +212,7 @@ nsPluginInstance::~nsPluginInstance()
 
 NPBool nsPluginInstance::init(NPWindow *aWindow)
 {
-    m_initialized = PR_TRUE;
+    m_initialized = true;
 
     m_host_ip.clear();
     m_port.clear();
@@ -234,11 +234,11 @@ NPBool nsPluginInstance::init(NPWindow *aWindow)
     m_disable_effects.clear();
     m_proxy.clear();
 
-    m_fullscreen = PR_FALSE;
-    m_smartcard = PR_FALSE;
-    m_admin_console = PR_FALSE;
-    m_no_taskmgr_execution = PR_FALSE;
-    m_send_ctrlaltdel = PR_TRUE;
+    m_fullscreen = false;
+    m_smartcard = false;
+    m_admin_console = false;
+    m_no_taskmgr_execution = false;
+    m_send_ctrlaltdel = true;
 
     return m_initialized;
 }
@@ -252,7 +252,7 @@ NPError nsPluginInstance::SetWindow(NPWindow *aWindow)
 
 void nsPluginInstance::shut()
 {
-    m_initialized = PR_FALSE;
+    m_initialized = false;
 }
 
 NPBool nsPluginInstance::isInitialized()
@@ -370,23 +370,23 @@ void nsPluginInstance::SetHostSubject(const char *aHostSubject)
 }
 
 /* attribute boolean fullScreen; */
-PRBool nsPluginInstance::GetFullScreen() const
+bool nsPluginInstance::GetFullScreen() const
 {
     return m_fullscreen;
 }
 
-void nsPluginInstance::SetFullScreen(PRBool aFullScreen)
+void nsPluginInstance::SetFullScreen(bool aFullScreen)
 {
     m_fullscreen = aFullScreen;
 }
 
 /* attribute boolean Smartcard; */
-PRBool nsPluginInstance::GetSmartcard() const
+bool nsPluginInstance::GetSmartcard() const
 {
     return m_smartcard;
 }
 
-void nsPluginInstance::SetSmartcard(PRBool aSmartcard)
+void nsPluginInstance::SetSmartcard(bool aSmartcard)
 {
     m_smartcard = aSmartcard;
 }
@@ -425,12 +425,12 @@ void nsPluginInstance::SetNumberOfMonitors(const char *aNumberOfMonitors)
 }
 
 /* attribute boolean AdminConsole; */
-PRBool nsPluginInstance::GetAdminConsole() const
+bool nsPluginInstance::GetAdminConsole() const
 {
     return m_admin_console;
 }
 
-void nsPluginInstance::SetAdminConsole(PRBool aAdminConsole)
+void nsPluginInstance::SetAdminConsole(bool aAdminConsole)
 {
     m_admin_console = aAdminConsole;
 }
@@ -458,23 +458,23 @@ void nsPluginInstance::SetHotKeys(const char *aHotKeys)
 }
 
 /* attribute boolean NoTaskMgrExecution; */
-PRBool nsPluginInstance::GetNoTaskMgrExecution() const
+bool nsPluginInstance::GetNoTaskMgrExecution() const
 {
     return m_no_taskmgr_execution;
 }
 
-void nsPluginInstance::SetNoTaskMgrExecution(PRBool aNoTaskMgrExecution)
+void nsPluginInstance::SetNoTaskMgrExecution(bool aNoTaskMgrExecution)
 {
     m_no_taskmgr_execution = aNoTaskMgrExecution;
 }
 
 /* attribute boolean SendCtrlAltDelete; */
-PRBool nsPluginInstance::GetSendCtrlAltDelete() const
+bool nsPluginInstance::GetSendCtrlAltDelete() const
 {
     return m_send_ctrlaltdel;
 }
 
-void nsPluginInstance::SetSendCtrlAltDelete(PRBool aSendCtrlAltDelete)
+void nsPluginInstance::SetSendCtrlAltDelete(bool aSendCtrlAltDelete)
 {
     m_send_ctrlaltdel = aSendCtrlAltDelete;
 }
@@ -496,12 +496,12 @@ void nsPluginInstance::SetUsbListenPort(unsigned short aUsbPort)
 }
 
 /* attribute boolean UsbAutoShare; */
-PRBool nsPluginInstance::GetUsbAutoShare() const
+bool nsPluginInstance::GetUsbAutoShare() const
 {
     return m_usb_auto_share;
 }
 
-void nsPluginInstance::SetUsbAutoShare(PRBool aUsbAutoShare)
+void nsPluginInstance::SetUsbAutoShare(bool aUsbAutoShare)
 {
     m_usb_auto_share = aUsbAutoShare;
 }
@@ -708,8 +708,8 @@ void nsPluginInstance::Connect()
         if (sport > 0)
             SendValue(CONTROLLER_SPORT, sport);
         SendValue(CONTROLLER_FULL_SCREEN,
-                   (m_fullscreen == PR_TRUE ? CONTROLLER_SET_FULL_SCREEN : 0) |
-                   (m_admin_console == PR_FALSE ? CONTROLLER_AUTO_DISPLAY_RES : 0));
+                   (m_fullscreen == true ? CONTROLLER_SET_FULL_SCREEN : 0) |
+                   (m_admin_console == false ? CONTROLLER_AUTO_DISPLAY_RES : 0));
         SendBool(CONTROLLER_ENABLE_SMARTCARD, m_smartcard);
         SendStr(CONTROLLER_PASSWORD, m_password);
         SendStr(CONTROLLER_TLS_CIPHERS, m_cipher_suite);
@@ -743,7 +743,7 @@ void nsPluginInstance::Disconnect()
         kill(-m_pid_controller, SIGTERM);
 }
 
-void nsPluginInstance::ConnectedStatus(PRInt32 *retval)
+void nsPluginInstance::ConnectedStatus(int32_t *retval)
 {
     *retval = m_connected_status;
 }
