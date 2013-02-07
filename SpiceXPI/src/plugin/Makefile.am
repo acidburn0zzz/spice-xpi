@@ -6,10 +6,10 @@ SDK_INCLUDE_DIR = `pkg-config --variable=idldir libxul`
 
 plugindir=$(extensiondir)/plugins
 
-plugin_LTLIBRARIES = libnsISpicec.la
+plugin_LTLIBRARIES = npSpiceConsole.la
 
-libnsISpicec_la_LDFLAGS = -avoid-version -module -no-undefined
-libnsISpicec_la_CPPFLAGS =			\
+npSpiceConsole_la_LDFLAGS = -avoid-version -module -no-undefined
+npSpiceConsole_la_CPPFLAGS =			\
 	-I$(top_srcdir)/common			\
 	-I$(srcdir)/npapi			\
 	$(GLIB_CFLAGS)				\
@@ -17,11 +17,11 @@ libnsISpicec_la_CPPFLAGS =			\
 	-DG_LOG_DOMAIN=\"SpiceXPI\"		\
 	$(NULL)
 
-libnsISpicec_la_LIBADD =			\
+npSpiceConsole_la_LIBADD =			\
 	$(GLIB_LIBS)				\
 	$(NULL)
 
-libnsISpicec_la_SOURCES =			\
+npSpiceConsole_la_SOURCES =			\
 	$(top_srcdir)/common/common.h		\
 	$(top_srcdir)/common/rederrorcodes.h	\
 	glib-compat.c				\
@@ -48,7 +48,7 @@ libnsISpicec_la_SOURCES =			\
 	$(NULL)
 
 if OS_LINUX
-libnsISpicec_la_SOURCES +=			\
+npSpiceConsole_la_SOURCES +=			\
 	controller-unix.cpp			\
 	controller-unix.h			\
 	$(NULL)
@@ -58,7 +58,7 @@ if OS_WINDOWS
 .rc.lo:
 	$(LIBTOOL) --tag=RC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(WINDRES) $(RCFLAGS) -i $< -o $@
 
-libnsISpicec_la_SOURCES +=			\
+npSpiceConsole_la_SOURCES +=			\
 	resource.rc				\
 	$(NULL)
 
@@ -67,7 +67,7 @@ libnsISpicec_la_SOURCES +=			\
 endif
 
 if BUILD_XPI
-libnsISpicec_la_SOURCES +=			\
+npSpiceConsole_la_SOURCES +=			\
 	nsISpicec.h				\
 	$(NULL)
 
