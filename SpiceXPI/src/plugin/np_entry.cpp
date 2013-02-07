@@ -45,6 +45,8 @@
 // Main plugin entry point implementation -- exports from the
 // plugin library
 //
+#include "config.h"
+
 #include <string.h>
 #include "npplat.h"
 #include "pluginbase.h"

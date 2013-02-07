@@ -15,7 +15,6 @@ libnsISpicec_la_CPPFLAGS =			\
 	$(SPICE_PROTOCOL_CFLAGS)		\
 	$(XUL_CFLAGS)				\
 	-DG_LOG_DOMAIN=\"SpiceXPI\"		\
-	-DXP_UNIX				\
 	$(NULL)
 
 libnsISpicec_la_LIBADD =			\

@@ -44,6 +44,8 @@
 #define _GNU_SOURCE
 #endif
 
+#include "config.h"
+
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
@@ -65,7 +67,6 @@ extern "C" {
 #include <fstream>
 #include <set>
 
-#include "config.h"
 #include "controller.h"
 #include "plugin.h"
 #include "nsScriptablePeer.h"

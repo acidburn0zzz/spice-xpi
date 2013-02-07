@@ -15,6 +15,8 @@ AC_CANONICAL_HOST
 AC_PROG_LIBTOOL
 AM_PROG_CC_C_O
 
+AC_DEFINE([XP_UNIX], 1, [Building Linux plugin])
+
 dnl =========================================================================
 dnl Check deps
 

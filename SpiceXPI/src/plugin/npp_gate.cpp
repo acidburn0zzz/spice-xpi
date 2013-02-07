@@ -44,6 +44,7 @@
 //
 // Implementation of plugin entry points (NPP_*)
 //
+#include "config.h"
 #include "pluginbase.h"
 
 // here the plugin creates a plugin instance object which 

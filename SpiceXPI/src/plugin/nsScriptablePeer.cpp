@@ -51,6 +51,8 @@
 // be callable from JavaScript
 //
 
+#include "config.h"
+
 #include <string.h>
 #include <sstream>
 #include "plugin.h"

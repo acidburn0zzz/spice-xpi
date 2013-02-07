@@ -39,6 +39,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "config.h"
+
 #include <prtypes.h>
 #include <npapi.h>
 #include <npruntime.h>

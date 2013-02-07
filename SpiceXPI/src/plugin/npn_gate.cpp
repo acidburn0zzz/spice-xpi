@@ -44,6 +44,8 @@
 //
 // Implementation of Netscape entry points (NPN_*)
 //
+#include "config.h"
+
 #include "npapi.h"
 #include "npfunctions.h"
 
