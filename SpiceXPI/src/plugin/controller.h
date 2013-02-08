@@ -69,7 +69,6 @@ class SpiceController
 {
 public:
     SpiceController();
-    SpiceController(const std::string &name);
     ~SpiceController();
 
     void SetFilename(const std::string &name);

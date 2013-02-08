@@ -63,12 +63,6 @@ SpiceController::SpiceController():
 {
 }
 
-SpiceController::SpiceController(const std::string &name):
-    m_client_socket(-1),
-    m_name(name)
-{
-}
-
 SpiceController::~SpiceController()
 {
     g_debug(G_STRFUNC);
