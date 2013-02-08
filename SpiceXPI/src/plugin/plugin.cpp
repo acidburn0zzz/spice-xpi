@@ -57,6 +57,8 @@
 #include <sstream>
 #include <signal.h>
 #include <glib.h>
+#include <glib/gstdio.h>
+#include <gio/gio.h>
 
 extern "C" {
 #include <pthread.h>
@@ -188,6 +190,10 @@ nsPluginInstance::nsPluginInstance(NPP aInstance):
     // create temporary directory in /tmp
     char tmp_dir[] = "/tmp/spicec-XXXXXX";
     m_tmp_dir = mkdtemp(tmp_dir);
+
+#if !GLIB_CHECK_VERSION(2, 35, 0)
+    g_type_init();
+#endif
 }
 
 nsPluginInstance::~nsPluginInstance()
@@ -647,41 +653,39 @@ bool nsPluginInstance::StartClient()
     g_return_val_if_reached(false);
 }
 
-bool nsPluginInstance::CreateTrustStore(void)
+bool nsPluginInstance::CreateTrustStoreFile(const std::string &trust_store)
 {
-    // create trust store filename
-    FILE *fp;
-    int fd = -1;
-    char trust_store_template[] = "/tmp/truststore.pem-XXXXXX";
-    mode_t prev_umask = umask(0177);
-    fd = mkstemp(trust_store_template);
-    umask(prev_umask);
-    m_trust_store_file = trust_store_template;
+    GFile *tmp_file;
+    GFileIOStream *iostream;
+    GOutputStream *stream;
 
-    if (fd != -1)
-    {
-        fp = fdopen(fd,"w+");
-        if (fp != NULL)
-        {
-            fputs(m_trust_store.c_str(), fp);
-            fflush(fp);
-            fsync(fd);
-            fclose(fp);
-        }
-        else
-        {
-            g_critical("could not open truststore temp file");
-            close(fd);
-            unlink(m_trust_store_file.c_str());
-            m_trust_store_file.clear();
-            return false;
-        }
-    }
-    else
-    {
-        g_critical("could not create truststore temp file: %s", g_strerror(errno));
+    tmp_file = g_file_new_tmp("trustore.pem-XXXXXX", &iostream, NULL);
+    if (tmp_file == NULL) {
+        g_message("Couldn't create truststore");
         return false;
     }
+
+    stream = g_io_stream_get_output_stream(G_IO_STREAM(iostream));
+    if (!g_output_stream_write_all(stream,
+                                   trust_store.c_str(),
+                                   trust_store.length(),
+                                   NULL, NULL, NULL)) {
+        g_critical("Couldn't write truststore");
+        return false;
+    }
+    m_trust_store_file = g_file_get_path(tmp_file);
+    g_object_unref(tmp_file);
+    g_object_unref(iostream);
+
+    return true;
+}
+
+bool nsPluginInstance::RemoveTrustStoreFile()
+{
+    if (g_unlink(m_trust_store_file.c_str()) != 0)
+        return false;;
+
+    m_trust_store_file.clear();
 
     return true;
 }
@@ -712,7 +716,7 @@ void nsPluginInstance::Connect()
         return;
     }
 
-    if (!this->CreateTrustStore()) {
+    if (!this->CreateTrustStoreFile(m_trust_store)) {
         g_critical("failed to create trust store");
         return;
     }
@@ -844,8 +848,7 @@ void *nsPluginInstance::ControllerWaitHelper(void *opaque)
         fake_this->m_external_controller.Disconnect();
     }
     
-    unlink(fake_this->m_trust_store_file.c_str());
-    fake_this->m_trust_store_file.clear();
+    fake_this->RemoveTrustStoreFile();
     fake_this->m_pid_controller = -1;
     return NULL;
 }

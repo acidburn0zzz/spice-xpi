@@ -187,6 +187,8 @@ private:
 private:
     bool StartClient();
     bool CreateTrustStore();
+    bool CreateTrustStoreFile(const std::string &trust_store);
+    bool RemoveTrustStoreFile();
 
     pid_t m_pid_controller;
     int32_t m_connected_status;
