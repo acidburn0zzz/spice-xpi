@@ -47,10 +47,6 @@
 
 #include "config.h"
 
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
@@ -175,8 +171,8 @@ void NS_DestroyPluginInstance(nsPluginInstanceBase *aPlugin)
 
 nsPluginInstance::nsPluginInstance(NPP aInstance):
     nsPluginInstanceBase(),
-    m_pid_controller(-1),
     m_connected_status(-2),
+    m_external_controller(this),
     m_instance(aInstance),
     m_initialized(true),
     m_window(NULL),
@@ -188,10 +184,6 @@ nsPluginInstance::nsPluginInstance(NPP aInstance):
     m_usb_auto_share(true),
     m_scriptable_peer(NULL)
 {
-    // create temporary directory in /tmp
-    char tmp_dir[] = "/tmp/spicec-XXXXXX";
-    m_tmp_dir = mkdtemp(tmp_dir);
-
 #if !GLIB_CHECK_VERSION(2, 35, 0)
     g_type_init();
 #endif
@@ -205,9 +197,6 @@ nsPluginInstance::~nsPluginInstance()
     // and zero its m_plugin member
     if (m_scriptable_peer)
         NPN_ReleaseObject(m_scriptable_peer);
-
-    // delete the temporary directory used for a client socket
-    rmdir(m_tmp_dir.c_str());
 }
 
 NPBool nsPluginInstance::init(NPWindow *aWindow)
@@ -233,6 +222,7 @@ NPBool nsPluginInstance::init(NPWindow *aWindow)
     m_color_depth.clear();
     m_disable_effects.clear();
     m_proxy.clear();
+    m_external_controller.SetProxy(std::string());
 
     m_fullscreen = false;
     m_smartcard = false;
@@ -537,6 +527,7 @@ char *nsPluginInstance::GetProxy() const
 void nsPluginInstance::SetProxy(const char *aProxy)
 {
     m_proxy = aProxy;
+    m_external_controller.SetProxy(m_proxy);
 }
 
 void nsPluginInstance::WriteToPipe(const void *data, uint32_t size)
@@ -584,74 +575,6 @@ void nsPluginInstance::SendStr(uint32_t id, std::string str)
     strcpy(reinterpret_cast<char *>(msg->data), str.c_str());
     WriteToPipe(msg, size);
     free(msg);
-}
-
-bool nsPluginInstance::StartClient()
-{
-    std::string socket_file(m_tmp_dir);
-    socket_file += "/spice-xpi";
-
-    /* use a pipe for the children to wait until it gets tracked */
-    int pipe_fds[2] = { -1, -1 };
-    if (pipe(pipe_fds) < 0) {
-        perror("spice-xpi system error");
-        return false;
-    }
-
-    m_pid_controller = fork();
-    if (m_pid_controller == 0)
-    {
-        setpgrp();
-
-        close(pipe_fds[1]);
-        pipe_fds[1] = -1;
-
-        char c;
-        if (read(pipe_fds[0], &c, 1) != 0)
-            g_critical("Error while reading on pipe: %s", g_strerror(errno));
-
-        close(pipe_fds[0]);
-        pipe_fds[0] = -1;
-
-        gchar **env = g_get_environ();
-        env = g_environ_setenv(env, "SPICE_XPI_SOCKET", socket_file.c_str(), TRUE);
-        if (!m_proxy.empty())
-            env = g_environ_setenv(env, "SPICE_PROXY", m_proxy.c_str(), TRUE);
-
-        execle("/usr/libexec/spice-xpi-client",
-               "/usr/libexec/spice-xpi-client", NULL,
-               env);
-        g_message("failed to run spice-xpi-client, running spicec instead");
-
-        // TODO: temporary fallback for backward compatibility
-        execle("/usr/bin/spicec",
-               "/usr/bin/spicec", "--controller", NULL,
-               env);
-
-        g_critical("ERROR failed to run spicec fallback");
-        g_strfreev(env);
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        g_debug("child pid: %"G_GUINT64_FORMAT, (guint64)m_pid_controller);
-
-        close(pipe_fds[0]);
-        pipe_fds[0] = -1;
-
-        pthread_t controller_thread_id;
-        pthread_create(&controller_thread_id, NULL, ControllerWaitHelper,
-            reinterpret_cast<void*>(this));
-
-        close(pipe_fds[1]);
-        pipe_fds[1] = -1;
-
-        m_external_controller.SetFilename(socket_file);
-
-        return true;
-    }
-
-    g_return_val_if_reached(false);
 }
 
 bool nsPluginInstance::CreateTrustStoreFile(const std::string &trust_store)
@@ -706,7 +629,7 @@ void nsPluginInstance::Connect()
         return;
     }
 
-    if (!this->StartClient()) {
+    if (!m_external_controller.StartClient()) {
         g_critical("failed to start SPICE client");
         return;
     }
@@ -759,8 +682,7 @@ void nsPluginInstance::Show()
 
 void nsPluginInstance::Disconnect()
 {
-    if (m_pid_controller > 0)
-        kill(-m_pid_controller, SIGTERM);
+    m_external_controller.StopClient();
 }
 
 void nsPluginInstance::ConnectedStatus(int32_t *retval)
@@ -832,26 +754,16 @@ void nsPluginInstance::CallOnDisconnected(int code)
     NPN_ReleaseVariantValue(&var_on_disconnected);
 }
 
-void *nsPluginInstance::ControllerWaitHelper(void *opaque)
+void nsPluginInstance::OnSpiceClientExit(int exit_code)
 {
-    nsPluginInstance *fake_this = reinterpret_cast<nsPluginInstance *>(opaque);
-    if (!fake_this)
-        return NULL;
-
-    int exit_code;
-    waitpid(fake_this->m_pid_controller, &exit_code, 0);
-    g_debug("child finished, pid: %"G_GUINT64_FORMAT, (guint64)exit_code);
-
-    fake_this->m_connected_status = fake_this->m_external_controller.TranslateRC(exit_code);
+    m_connected_status = m_external_controller.TranslateRC(exit_code);
     if (!getenv("SPICE_XPI_DEBUG"))
     {
-        fake_this->CallOnDisconnected(exit_code);
-        fake_this->m_external_controller.Disconnect();
+        CallOnDisconnected(exit_code);
+        m_external_controller.Disconnect();
     }
-    
-    fake_this->RemoveTrustStoreFile();
-    fake_this->m_pid_controller = -1;
-    return NULL;
+
+    RemoveTrustStoreFile();
 }
 
 // ==============================

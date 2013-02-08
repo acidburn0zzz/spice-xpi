@@ -174,8 +174,9 @@ public:
 
     NPObject *GetScriptablePeer();
     
+    void OnSpiceClientExit(int exit_code);
+
 private:
-    static void *ControllerWaitHelper(void *opaque);
     void WriteToPipe(const void *data, uint32_t size);
     void SendInit();
     void SendMsg(uint32_t id);
@@ -185,12 +186,9 @@ private:
     void CallOnDisconnected(int code);
   
 private:
-    bool StartClient();
-    bool CreateTrustStore();
     bool CreateTrustStoreFile(const std::string &trust_store);
     bool RemoveTrustStoreFile();
 
-    pid_t m_pid_controller;
     int32_t m_connected_status;
     SpiceController m_external_controller;
 
@@ -224,7 +222,6 @@ private:
     std::string m_proxy;
     
     NPObject *m_scriptable_peer;
-    std::string m_tmp_dir;
     std::string m_trust_store_file;
 };
 

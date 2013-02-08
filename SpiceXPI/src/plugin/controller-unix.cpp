@@ -53,25 +53,39 @@ extern "C" {
 #  include <fcntl.h>
 #  include <sys/socket.h>
 #  include <sys/un.h>
+#  include <sys/wait.h>
 }
 
 #include "rederrorcodes.h"
 #include "controller.h"
+#include "plugin.h"
 
-SpiceController::SpiceController():
+SpiceController::SpiceController(nsPluginInstance *aPlugin):
+    m_plugin(aPlugin),
     m_client_socket(-1)
 {
+    // create temporary directory in /tmp
+    char tmp_dir[] = "/tmp/spicec-XXXXXX";
+    m_tmp_dir = mkdtemp(tmp_dir);
 }
 
 SpiceController::~SpiceController()
 {
     g_debug(G_STRFUNC);
     Disconnect();
+
+    // delete the temporary directory used for a client socket
+    rmdir(m_tmp_dir.c_str());
 }
 
 void SpiceController::SetFilename(const std::string &name)
 {
     m_name = name;
+}
+
+void SpiceController::SetProxy(const std::string &proxy)
+{
+    m_proxy = proxy;
 }
 
 int SpiceController::Connect()
@@ -146,6 +160,96 @@ uint32_t SpiceController::Write(const void *lpBuffer, uint32_t nBytesToWrite)
     }
 
     return len;
+}
+
+bool SpiceController::StartClient()
+{
+    std::string socket_file(m_tmp_dir);
+    socket_file += "/spice-xpi";
+
+    /* use a pipe for the children to wait until it gets tracked */
+    int pipe_fds[2] = { -1, -1 };
+    if (pipe(pipe_fds) < 0) {
+        perror("spice-xpi system error");
+        return false;
+    }
+
+    m_pid_controller = fork();
+    if (m_pid_controller == 0)
+    {
+        setpgrp();
+
+        close(pipe_fds[1]);
+        pipe_fds[1] = -1;
+
+        char c;
+        if (read(pipe_fds[0], &c, 1) != 0)
+            g_critical("Error while reading on pipe: %s", g_strerror(errno));
+
+        close(pipe_fds[0]);
+        pipe_fds[0] = -1;
+
+        gchar **env = g_get_environ();
+        env = g_environ_setenv(env, "SPICE_XPI_SOCKET", socket_file.c_str(), TRUE);
+        if (!m_proxy.empty())
+            env = g_environ_setenv(env, "SPICE_PROXY", m_proxy.c_str(), TRUE);
+
+        execle("/usr/libexec/spice-xpi-client",
+               "/usr/libexec/spice-xpi-client", NULL,
+               env);
+        g_message("failed to run spice-xpi-client, running spicec instead");
+
+        // TODO: temporary fallback for backward compatibility
+        execle("/usr/bin/spicec",
+               "/usr/bin/spicec", "--controller", NULL,
+               env);
+
+        g_critical("ERROR failed to run spicec fallback");
+        g_strfreev(env);
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        g_debug("child pid: %"G_GUINT64_FORMAT, (guint64)m_pid_controller);
+
+        close(pipe_fds[0]);
+        pipe_fds[0] = -1;
+
+        pthread_t controller_thread_id;
+        pthread_create(&controller_thread_id, NULL, ControllerWaitHelper,
+            reinterpret_cast<void*>(this));
+
+        close(pipe_fds[1]);
+        pipe_fds[1] = -1;
+
+        this->SetFilename(socket_file);
+
+        return true;
+    }
+
+    g_return_val_if_reached(false);
+}
+
+void SpiceController::StopClient()
+{
+    if (m_pid_controller > 0)
+        kill(-m_pid_controller, SIGTERM);
+}
+
+void *SpiceController::ControllerWaitHelper(void *opaque)
+{
+    SpiceController *fake_this = reinterpret_cast<SpiceController *>(opaque);
+    if (!fake_this)
+        return NULL;
+
+    int exit_code;
+    waitpid(fake_this->m_pid_controller, &exit_code, 0);
+    g_debug("child finished, pid: %"G_GUINT64_FORMAT, (guint64)exit_code);
+
+    fake_this->m_plugin->OnSpiceClientExit(exit_code);
+    fake_this->m_pid_controller = -1;
+
+    return NULL;
 }
 
 int SpiceController::TranslateRC(int nRC)

@@ -65,13 +65,18 @@ extern "C" {
 
 #include <spice/controller_prot.h>
 
+class nsPluginInstance;
+
 class SpiceController
 {
 public:
-    SpiceController();
+    SpiceController(nsPluginInstance *aPlugin);
     ~SpiceController();
 
+    bool StartClient();
+    void StopClient();
     void SetFilename(const std::string &name);
+    void SetProxy(const std::string &proxy);
     int Connect(int nRetries);
     void Disconnect();
     uint32_t Write(const void *lpBuffer, uint32_t nBytesToWrite);
@@ -80,8 +85,14 @@ public:
 
 private:
     int Connect();
+    static void *ControllerWaitHelper(void *opaque);
+
+    nsPluginInstance *m_plugin;
     int m_client_socket;
     std::string m_name;
+    std::string m_tmp_dir;
+    pid_t m_pid_controller;
+    std::string m_proxy;
 };
 
 #endif // SPICE_CONTROLLER_H
