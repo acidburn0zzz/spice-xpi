@@ -185,6 +185,9 @@ private:
     void CallOnDisconnected(int code);
   
 private:
+    bool StartClient();
+    bool CreateTrustStore();
+
     pid_t m_pid_controller;
     int32_t m_connected_status;
     SpiceController m_external_controller;

@@ -579,21 +579,8 @@ void nsPluginInstance::SendStr(uint32_t id, std::string str)
     free(msg);
 }
 
-void nsPluginInstance::Connect()
+bool nsPluginInstance::StartClient()
 {
-    const int port = portToInt(m_port);
-    const int sport = portToInt(m_secure_port);
-    if (port < 0)
-        g_warning("invalid port: '%s'", m_port.c_str());
-    if (sport < 0)
-        g_warning("invalid secure port: '%s'", m_secure_port.c_str());
-    if (port <= 0 && sport <= 0)
-    {
-        m_connected_status = 1;
-        CallOnDisconnected(m_connected_status);
-        return;
-    }
-
     std::string socket_file(m_tmp_dir);
     socket_file += "/spice-xpi";
 
@@ -601,7 +588,7 @@ void nsPluginInstance::Connect()
     int pipe_fds[2] = { -1, -1 };
     if (pipe(pipe_fds) < 0) {
         perror("spice-xpi system error");
-        return;
+        return false;
     }
 
     m_pid_controller = fork();
@@ -654,74 +641,109 @@ void nsPluginInstance::Connect()
 
         m_external_controller.SetFilename(socket_file);
 
-        if (m_external_controller.Connect(10) != 0)
-        {
-            g_critical("could not connect to spice client controller");
-            return;
-        }
+        return true;
+    }
 
-        // create trust store filename
-        FILE *fp;
-        int fd = -1;
-        char trust_store_template[] = "/tmp/truststore.pem-XXXXXX";
-        mode_t prev_umask = umask(0177);
-        fd = mkstemp(trust_store_template);
-        umask(prev_umask);
-        m_trust_store_file = trust_store_template;
+    g_return_val_if_reached(false);
+}
 
-        if (fd != -1)
+bool nsPluginInstance::CreateTrustStore(void)
+{
+    // create trust store filename
+    FILE *fp;
+    int fd = -1;
+    char trust_store_template[] = "/tmp/truststore.pem-XXXXXX";
+    mode_t prev_umask = umask(0177);
+    fd = mkstemp(trust_store_template);
+    umask(prev_umask);
+    m_trust_store_file = trust_store_template;
+
+    if (fd != -1)
+    {
+        fp = fdopen(fd,"w+");
+        if (fp != NULL)
         {
-            fp = fdopen(fd,"w+");
-            if (fp != NULL)
-            {
-                fputs(m_trust_store.c_str(), fp);
-                fflush(fp);
-                fsync(fd);
-                fclose(fp);
-            }
-            else
-            {
-                g_critical("could not open truststore temp file");
-                close(fd);
-                unlink(m_trust_store_file.c_str());
-                m_trust_store_file.clear();
-                return;
-            }
+            fputs(m_trust_store.c_str(), fp);
+            fflush(fp);
+            fsync(fd);
+            fclose(fp);
         }
         else
         {
-            g_critical("could not create truststore temp file: %s", g_strerror(errno));
-            return;
+            g_critical("could not open truststore temp file");
+            close(fd);
+            unlink(m_trust_store_file.c_str());
+            m_trust_store_file.clear();
+            return false;
         }
-
-        SendInit();
-        SendStr(CONTROLLER_HOST, m_host_ip);
-        if (port > 0)
-            SendValue(CONTROLLER_PORT, port);
-        if (sport > 0)
-            SendValue(CONTROLLER_SPORT, sport);
-        SendValue(CONTROLLER_FULL_SCREEN,
-                   (m_fullscreen == true ? CONTROLLER_SET_FULL_SCREEN : 0) |
-                   (m_admin_console == false ? CONTROLLER_AUTO_DISPLAY_RES : 0));
-        SendBool(CONTROLLER_ENABLE_SMARTCARD, m_smartcard);
-        SendStr(CONTROLLER_PASSWORD, m_password);
-        SendStr(CONTROLLER_TLS_CIPHERS, m_cipher_suite);
-        SendStr(CONTROLLER_SET_TITLE, m_title);
-        SendBool(CONTROLLER_SEND_CAD, m_send_ctrlaltdel);
-        SendBool(CONTROLLER_ENABLE_USB_AUTOSHARE, m_usb_auto_share);
-        SendStr(CONTROLLER_USB_FILTER, m_usb_filter);
-        SendStr(CONTROLLER_SECURE_CHANNELS, m_ssl_channels);
-        SendStr(CONTROLLER_CA_FILE, m_trust_store_file);
-        SendStr(CONTROLLER_HOST_SUBJECT, m_host_subject);
-        SendStr(CONTROLLER_HOTKEYS, m_hot_keys);
-        SendValue(CONTROLLER_COLOR_DEPTH, atoi(m_color_depth.c_str()));
-        SendStr(CONTROLLER_DISABLE_EFFECTS, m_disable_effects);
-        SendMsg(CONTROLLER_CONNECT);
-        SendMsg(CONTROLLER_SHOW);
-
-        // set connected status
-        m_connected_status = -1;
     }
+    else
+    {
+        g_critical("could not create truststore temp file: %s", g_strerror(errno));
+        return false;
+    }
+
+    return true;
+}
+
+void nsPluginInstance::Connect()
+{
+    const int port = portToInt(m_port);
+    const int sport = portToInt(m_secure_port);
+    if (port < 0)
+        g_warning("invalid port: '%s'", m_port.c_str());
+    if (sport < 0)
+        g_warning("invalid secure port: '%s'", m_secure_port.c_str());
+    if (port <= 0 && sport <= 0)
+    {
+        m_connected_status = 1;
+        CallOnDisconnected(m_connected_status);
+        return;
+    }
+
+    if (!this->StartClient()) {
+        g_critical("failed to start SPICE client");
+        return;
+    }
+
+    if (m_external_controller.Connect(10) != 0)
+    {
+        g_critical("could not connect to spice client controller");
+        return;
+    }
+
+    if (!this->CreateTrustStore()) {
+        g_critical("failed to create trust store");
+        return;
+    }
+
+    SendInit();
+    SendStr(CONTROLLER_HOST, m_host_ip);
+    if (port > 0)
+        SendValue(CONTROLLER_PORT, port);
+    if (sport > 0)
+        SendValue(CONTROLLER_SPORT, sport);
+    SendValue(CONTROLLER_FULL_SCREEN,
+            (m_fullscreen == true ? CONTROLLER_SET_FULL_SCREEN : 0) |
+            (m_admin_console == false ? CONTROLLER_AUTO_DISPLAY_RES : 0));
+    SendBool(CONTROLLER_ENABLE_SMARTCARD, m_smartcard);
+    SendStr(CONTROLLER_PASSWORD, m_password);
+    SendStr(CONTROLLER_TLS_CIPHERS, m_cipher_suite);
+    SendStr(CONTROLLER_SET_TITLE, m_title);
+    SendBool(CONTROLLER_SEND_CAD, m_send_ctrlaltdel);
+    SendBool(CONTROLLER_ENABLE_USB_AUTOSHARE, m_usb_auto_share);
+    SendStr(CONTROLLER_USB_FILTER, m_usb_filter);
+    SendStr(CONTROLLER_SECURE_CHANNELS, m_ssl_channels);
+    SendStr(CONTROLLER_CA_FILE, m_trust_store_file);
+    SendStr(CONTROLLER_HOST_SUBJECT, m_host_subject);
+    SendStr(CONTROLLER_HOTKEYS, m_hot_keys);
+    SendValue(CONTROLLER_COLOR_DEPTH, atoi(m_color_depth.c_str()));
+    SendStr(CONTROLLER_DISABLE_EFFECTS, m_disable_effects);
+    SendMsg(CONTROLLER_CONNECT);
+    SendMsg(CONTROLLER_SHOW);
+
+    // set connected status
+    m_connected_status = -1;
 }
 
 void nsPluginInstance::Show()
