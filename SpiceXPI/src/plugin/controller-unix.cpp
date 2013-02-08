@@ -40,8 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "config.h"
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
