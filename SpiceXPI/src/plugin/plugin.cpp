@@ -49,7 +49,6 @@
 #include <sys/stat.h>
 
 #include <stdlib.h>
-#include <dlfcn.h>
 #include <errno.h>
 #include <unistd.h>
 #include <string>
