@@ -72,7 +72,6 @@ public:
     ~SpiceController();
 
     void SetFilename(const std::string &name);
-    int Connect();
     int Connect(int nRetries);
     void Disconnect();
     uint32_t Write(const void *lpBuffer, uint32_t nBytesToWrite);
@@ -80,6 +79,7 @@ public:
     static int TranslateRC(int nRC);
 
 private:
+    int Connect();
     int m_client_socket;
     std::string m_name;
 };
