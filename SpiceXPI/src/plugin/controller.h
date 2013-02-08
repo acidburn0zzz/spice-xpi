@@ -57,6 +57,7 @@
             (rather than anonymous pipe which is local only and one way)
 */
 
+#include <glib.h>
 #include <string>
 extern "C" {
 #  include <stdint.h>
@@ -85,7 +86,9 @@ public:
 
 private:
     int Connect();
-    static void *ControllerWaitHelper(void *opaque);
+    void WaitForPid(GPid pid);
+    static void ChildExited(GPid pid, gint status, gpointer user_data);
+    static gpointer ClientThread(gpointer data);
 
     nsPluginInstance *m_plugin;
     int m_client_socket;
@@ -93,6 +96,8 @@ private:
     std::string m_tmp_dir;
     pid_t m_pid_controller;
     std::string m_proxy;
+
+    GMainLoop *m_child_watch_mainloop;
 };
 
 #endif // SPICE_CONTROLLER_H

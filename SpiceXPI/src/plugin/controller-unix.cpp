@@ -162,94 +162,107 @@ uint32_t SpiceController::Write(const void *lpBuffer, uint32_t nBytesToWrite)
     return len;
 }
 
-bool SpiceController::StartClient()
+void SpiceController::ChildExited(GPid pid, gint status, gpointer user_data)
 {
-    std::string socket_file(m_tmp_dir);
+    SpiceController *fake_this = (SpiceController *)user_data;
+
+    g_message("Client with pid %p exited", pid);
+
+    g_main_loop_quit(fake_this->m_child_watch_mainloop);
+    /* FIXME: we are not in the main thread!! */
+    fake_this->m_plugin->OnSpiceClientExit(status);
+}
+
+void SpiceController::WaitForPid(GPid pid)
+{
+    GMainContext *context;
+    GSource *source;
+
+    context = g_main_context_new();
+
+    m_child_watch_mainloop = g_main_loop_new(context, FALSE);
+    source = g_child_watch_source_new(pid);
+    g_source_set_callback(source, (GSourceFunc)ChildExited, this, NULL);
+    g_source_attach(source, context);
+
+    g_main_loop_run(m_child_watch_mainloop);
+
+    g_main_loop_unref(m_child_watch_mainloop);
+    g_main_context_unref(context);
+
+    g_spawn_close_pid(pid);
+    if (pid == m_pid_controller)
+        m_pid_controller = 0;
+}
+
+
+gpointer SpiceController::ClientThread(gpointer data)
+{
+    char *spice_xpi_argv[] = { "/usr/libexec/spice-xpi-client", NULL };
+    SpiceController *fake_this = (SpiceController *)data;
+    gchar **env = g_get_environ();
+    GPid pid;
+    gboolean spawned;
+    GError *error = NULL;
+
+    std::string socket_file(fake_this->m_tmp_dir);
     socket_file += "/spice-xpi";
 
-    /* use a pipe for the children to wait until it gets tracked */
-    int pipe_fds[2] = { -1, -1 };
-    if (pipe(pipe_fds) < 0) {
-        perror("spice-xpi system error");
-        return false;
+    fake_this->SetFilename(socket_file);
+
+    env = g_environ_setenv(env, "SPICE_XPI_SOCKET", socket_file.c_str(), TRUE);
+    if (!fake_this->m_proxy.empty())
+        env = g_environ_setenv(env, "SPICE_PROXY", fake_this->m_proxy.c_str(), TRUE);
+
+    spawned = g_spawn_async(NULL,
+                            spice_xpi_argv, env,
+                            G_SPAWN_DO_NOT_REAP_CHILD,
+                            NULL, NULL, /* child_func, child_arg */
+                            &pid, &error);
+    if (error != NULL) {
+        g_warning("failed to start spice-xpi-client: %s", error->message);
+        g_clear_error(&error);
     }
-
-    m_pid_controller = fork();
-    if (m_pid_controller == 0)
-    {
-        setpgrp();
-
-        close(pipe_fds[1]);
-        pipe_fds[1] = -1;
-
-        char c;
-        if (read(pipe_fds[0], &c, 1) != 0)
-            g_critical("Error while reading on pipe: %s", g_strerror(errno));
-
-        close(pipe_fds[0]);
-        pipe_fds[0] = -1;
-
-        gchar **env = g_get_environ();
-        env = g_environ_setenv(env, "SPICE_XPI_SOCKET", socket_file.c_str(), TRUE);
-        if (!m_proxy.empty())
-            env = g_environ_setenv(env, "SPICE_PROXY", m_proxy.c_str(), TRUE);
-
-        execle("/usr/libexec/spice-xpi-client",
-               "/usr/libexec/spice-xpi-client", NULL,
-               env);
-        g_message("failed to run spice-xpi-client, running spicec instead");
-
+    if (!spawned) {
         // TODO: temporary fallback for backward compatibility
-        execle("/usr/bin/spicec",
-               "/usr/bin/spicec", "--controller", NULL,
-               env);
-
+        char *spicec_argv[] = { "/usr/bin/spicec", "--controller", NULL };
+        g_message("failed to run spice-xpi-client, running spicec instead");
+        spawned = g_spawn_async(NULL, spicec_argv, env,
+                                G_SPAWN_DO_NOT_REAP_CHILD,
+                                NULL, NULL, /* child_func, child_arg */
+                                &pid, &error);
+    }
+    if (error != NULL) {
+        g_warning("failed to start spice-xpi-client: %s", error->message);
+        g_clear_error(&error);
+    }
+    g_strfreev(env);
+    if (!spawned) {
         g_critical("ERROR failed to run spicec fallback");
-        g_strfreev(env);
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        g_debug("child pid: %"G_GUINT64_FORMAT, (guint64)m_pid_controller);
-
-        close(pipe_fds[0]);
-        pipe_fds[0] = -1;
-
-        pthread_t controller_thread_id;
-        pthread_create(&controller_thread_id, NULL, ControllerWaitHelper,
-            reinterpret_cast<void*>(this));
-
-        close(pipe_fds[1]);
-        pipe_fds[1] = -1;
-
-        this->SetFilename(socket_file);
-
-        return true;
+        return NULL;
     }
 
-    g_return_val_if_reached(false);
+#ifdef XP_UNIX
+    fake_this->m_pid_controller = pid;
+#endif
+    fake_this->WaitForPid(pid);
+
+    return NULL;
+}
+
+bool SpiceController::StartClient()
+{
+    GThread *thread;
+
+    thread = g_thread_new("spice-xpi client thread", ClientThread, this);
+
+    return (thread != NULL);
 }
 
 void SpiceController::StopClient()
 {
     if (m_pid_controller > 0)
         kill(-m_pid_controller, SIGTERM);
-}
-
-void *SpiceController::ControllerWaitHelper(void *opaque)
-{
-    SpiceController *fake_this = reinterpret_cast<SpiceController *>(opaque);
-    if (!fake_this)
-        return NULL;
-
-    int exit_code;
-    waitpid(fake_this->m_pid_controller, &exit_code, 0);
-    g_debug("child finished, pid: %"G_GUINT64_FORMAT, (guint64)exit_code);
-
-    fake_this->m_plugin->OnSpiceClientExit(exit_code);
-    fake_this->m_pid_controller = -1;
-
-    return NULL;
 }
 
 int SpiceController::TranslateRC(int nRC)
