@@ -89,6 +89,8 @@ private:
     int Connect();
     void WaitForPid(GPid pid);
     void SetupControllerPipe(GStrv &env);
+    GStrv GetClientPath(void);
+    GStrv GetFallbackClientPath(void);
     static void ChildExited(GPid pid, gint status, gpointer user_data);
     static gpointer ClientThread(gpointer data);
 

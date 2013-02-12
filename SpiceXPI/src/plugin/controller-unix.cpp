@@ -138,6 +138,20 @@ int SpiceController::Connect(const int nRetries)
     return rc;
 }
 
+GStrv SpiceControllerUnix::GetClientPath()
+{
+    const char *client_argv[] = { "/usr/libexec/spice-xpi-client", NULL };
+
+    return g_strdupv((GStrv)client_argv);
+}
+
+GStrv SpiceControllerUnix::GetFallbackClientPath()
+{
+    const char *fallback_argv[] = { "/usr/bin/spicec", "--controller", NULL };
+
+    return g_strdupv((GStrv)fallback_argv);
+}
+
 void SpiceController::SetupControllerPipe(GStrv &env)
 {
     std::string socket_file(this->m_tmp_dir);
@@ -208,42 +222,66 @@ void SpiceController::WaitForPid(GPid pid)
 
 gpointer SpiceController::ClientThread(gpointer data)
 {
-    char *spice_xpi_argv[] = { "/usr/libexec/spice-xpi-client", NULL };
     SpiceController *fake_this = (SpiceController *)data;
     gchar **env = g_get_environ();
     GPid pid;
-    gboolean spawned;
+    gboolean spawned = FALSE;
     GError *error = NULL;
+    GStrv client_argv;
 
-
+    // Setup client environment
     fake_this->SetupControllerPipe(env);
-
     if (!fake_this->m_proxy.empty())
         env = g_environ_setenv(env, "SPICE_PROXY", fake_this->m_proxy.c_str(), TRUE);
 
-    spawned = g_spawn_async(NULL,
-                            spice_xpi_argv, env,
-                            G_SPAWN_DO_NOT_REAP_CHILD,
-                            NULL, NULL, /* child_func, child_arg */
-                            &pid, &error);
-    if (error != NULL) {
-        g_warning("failed to start spice-xpi-client: %s", error->message);
-        g_clear_error(&error);
-    }
-    if (!spawned) {
-        // TODO: temporary fallback for backward compatibility
-        char *spicec_argv[] = { "/usr/bin/spicec", "--controller", NULL };
-        g_message("failed to run spice-xpi-client, running spicec instead");
-        spawned = g_spawn_async(NULL, spicec_argv, env,
+    // Try to spawn main client
+    client_argv = fake_this->GetClientPath();
+    if (client_argv != NULL) {
+        char *argv_str = g_strjoinv(" ", client_argv);
+        g_warning("main client cmdline: %s", argv_str);
+        g_free(argv_str);
+
+        spawned = g_spawn_async(NULL,
+                                client_argv, env,
                                 G_SPAWN_DO_NOT_REAP_CHILD,
                                 NULL, NULL, /* child_func, child_arg */
                                 &pid, &error);
+        if (error != NULL) {
+            g_warning("failed to start %s: %s", client_argv[0], error->message);
+            g_warn_if_fail(spawned == FALSE);
+            g_clear_error(&error);
+        }
+        g_strfreev(client_argv);
     }
-    if (error != NULL) {
-        g_warning("failed to start spice-xpi-client: %s", error->message);
-        g_clear_error(&error);
+
+    if (!spawned) {
+        // Fallback client for backward compatibility
+        GStrv fallback_argv;
+        char *argv_str;
+        fallback_argv = fake_this->GetFallbackClientPath();
+        if (fallback_argv == NULL) {
+            goto out;
+        }
+
+        argv_str = g_strjoinv(" ", fallback_argv);
+        g_warning("fallback client cmdline: %s", argv_str);
+        g_free(argv_str);
+
+        g_message("failed to run preferred client, running fallback client instead");
+        spawned = g_spawn_async(NULL, fallback_argv, env,
+                                G_SPAWN_DO_NOT_REAP_CHILD,
+                                NULL, NULL, /* child_func, child_arg */
+                                &pid, &error);
+        if (error != NULL) {
+            g_warning("failed to start %s: %s", fallback_argv[0], error->message);
+            g_warn_if_fail(spawned == FALSE);
+            g_clear_error(&error);
+        }
     }
+
+out:
     g_strfreev(env);
+
     if (!spawned) {
         g_critical("ERROR failed to run spicec fallback");
         return NULL;
