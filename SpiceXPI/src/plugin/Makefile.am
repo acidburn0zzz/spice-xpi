@@ -8,7 +8,14 @@ plugindir=$(extensiondir)/plugins
 
 plugin_LTLIBRARIES = npSpiceConsole.la
 
-npSpiceConsole_la_LDFLAGS = -avoid-version -module -no-undefined
+EXTRA_DIST = ${srcdir}/npapi-plugin.syms
+
+npSpiceConsole_la_LDFLAGS = 				\
+	-avoid-version					\
+	-module						\
+	-no-undefined					\
+	-export-symbols ${srcdir}/npapi-plugin.syms	\
+	$(NULL)
 npSpiceConsole_la_CPPFLAGS =			\
 	-I$(top_srcdir)/common			\
 	-I$(srcdir)/npapi			\
