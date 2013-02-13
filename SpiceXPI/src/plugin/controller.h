@@ -11,7 +11,7 @@
  *   for the specific language governing rights and limitations under the
  *   License.
  *
- *   Copyright 2009-2011, Red Hat Inc.
+ *   Copyright 2009-2013, Red Hat Inc.
  *   Based on mozilla.org's scriptable plugin example
  *
  *   The Original Code is mozilla.org code.
@@ -25,6 +25,7 @@
  *   Uri Lublin
  *   Martin Stransky
  *   Peter Hatina
+ *   Christophe Fergeau
  *
  *   Alternatively, the contents of this file may be used under the terms of
  *   either the GNU General Public License Version 2 or later (the "GPL"), or
