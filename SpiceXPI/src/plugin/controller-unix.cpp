@@ -138,6 +138,16 @@ int SpiceController::Connect(const int nRetries)
     return rc;
 }
 
+void SpiceController::SetupControllerPipe(GStrv &env)
+{
+    std::string socket_file(this->m_tmp_dir);
+    socket_file += "/spice-xpi";
+
+    this->SetFilename(socket_file);
+
+    env = g_environ_setenv(env, "SPICE_XPI_SOCKET", socket_file.c_str(), TRUE);
+}
+
 void SpiceController::Disconnect()
 {
     // close the socket
@@ -205,12 +215,9 @@ gpointer SpiceController::ClientThread(gpointer data)
     gboolean spawned;
     GError *error = NULL;
 
-    std::string socket_file(fake_this->m_tmp_dir);
-    socket_file += "/spice-xpi";
 
-    fake_this->SetFilename(socket_file);
+    fake_this->SetupControllerPipe(env);
 
-    env = g_environ_setenv(env, "SPICE_XPI_SOCKET", socket_file.c_str(), TRUE);
     if (!fake_this->m_proxy.empty())
         env = g_environ_setenv(env, "SPICE_PROXY", fake_this->m_proxy.c_str(), TRUE);
 

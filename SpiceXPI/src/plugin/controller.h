@@ -58,6 +58,7 @@
 */
 
 #include <glib.h>
+#include <glib-object.h> /* for GStrv */
 #include <string>
 extern "C" {
 #  include <stdint.h>
@@ -87,6 +88,7 @@ public:
 private:
     int Connect();
     void WaitForPid(GPid pid);
+    void SetupControllerPipe(GStrv &env);
     static void ChildExited(GPid pid, gint status, gpointer user_data);
     static gpointer ClientThread(gpointer data);
 
