@@ -173,6 +173,51 @@ void NS_DestroyPluginInstance(nsPluginInstanceBase *aPlugin)
 //
 // nsPluginInstance class implementation
 //
+static void glib_log_to_file(const gchar *log_domain,
+                             GLogLevelFlags log_level,
+                             const gchar *message,
+                             gpointer user_data)
+{
+    FILE *log_file;
+
+    if ((log_level & G_LOG_LEVEL_MASK) > G_LOG_LEVEL_MESSAGE) {
+        return;
+    }
+
+    log_file = (FILE *)user_data;
+
+    if (log_domain != NULL) {
+        fwrite(log_domain, strlen(log_domain), 1, log_file);
+        fwrite(": ", 2, 1, log_file);
+    }
+    if (message != NULL) {
+        fwrite(message, strlen(message), 1, log_file);
+    }
+    fwrite("\r\n", 2, 1, log_file);
+    fflush(log_file);
+}
+
+static void glib_setup_logging(void)
+{
+#if defined(XP_WIN)
+    FILE *log_file;
+    gchar *log_filename;
+
+    if (!g_getenv("SPICE_XPI_LOG_TO_FILE"))
+        return;
+
+    log_filename = g_build_filename(g_get_tmp_dir(), "SPICEXPI.LOG", NULL);
+    log_file = fopen(log_filename, "w+");
+    if (log_file != NULL) {
+        g_log_set_default_handler(glib_log_to_file, log_file);
+    } else {
+        gchar *log_msg;
+        log_msg = g_strdup_printf("failed to open %s", log_filename);
+        g_free(log_msg);
+    }
+    g_free(log_filename);
+#endif
+}
 
 nsPluginInstance::nsPluginInstance(NPP aInstance):
     nsPluginInstanceBase(),
@@ -191,6 +236,7 @@ nsPluginInstance::nsPluginInstance(NPP aInstance):
 #if !GLIB_CHECK_VERSION(2, 35, 0)
     g_type_init();
 #endif
+    glib_setup_logging();
 
 #if defined(XP_WIN)
     m_external_controller = new SpiceControllerWin(this);
