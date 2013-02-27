@@ -131,7 +131,7 @@ int SpiceController::Connect(const int nRetries)
     for (int i = 0; rc != 0 && i < nRetries; ++i)
     {
         rc = Connect();
-        sleep(sleep_time);
+        g_usleep(sleep_time * G_USEC_PER_SEC);
         ++sleep_time;
     }
 
