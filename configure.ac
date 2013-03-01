@@ -41,9 +41,9 @@ AC_CONFIG_SUBDIRS([spice-protocol])
 SPICE_PROTOCOL_CFLAGS='-I ${top_srcdir}/spice-protocol'
 AC_SUBST(SPICE_PROTOCOL_CFLAGS)
 
-PKG_CHECK_MODULES(GLIB, glib-2.0 gio-2.0 gthread-2.0)
-AC_SUBST(GLIB_CFLAGS)
-AC_SUBST(GLIB_LIBS)
+SPICE_XPI_REQUIRES="glib-2.0 gio-2.0 gthread-2.0"
+AS_IF([test "x$backend" = "xwindows"], [SPICE_XPI_REQUIRES="$SPICE_XPI_REQUIRES gio-windows-2.0"])
+PKG_CHECK_MODULES([GLIB],[$SPICE_XPI_REQUIRES])
 
 AC_ARG_ENABLE([xpi],
   [AS_HELP_STRING([--enable-xpi],

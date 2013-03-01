@@ -66,6 +66,8 @@ if OS_WINDOWS
 	$(LIBTOOL) --tag=RC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(WINDRES) $(RCFLAGS) -i $< -o $@
 
 npSpiceConsole_la_SOURCES +=			\
+	controller-win.cpp			\
+	controller-win.h			\
 	resource.rc				\
 	$(NULL)
 

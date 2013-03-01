@@ -97,6 +97,21 @@ int SpiceController::Connect(const int nRetries)
         g_usleep(sleep_time * G_USEC_PER_SEC);
         ++sleep_time;
     }
+    if (rc != 0) {
+        g_warning("error connecting");
+        g_assert(m_pipe == NULL);
+    }
+    if (!CheckPipe()) {
+        g_warning("Pipe validation failure");
+        g_warn_if_fail(m_pipe == NULL);
+    }
+    if (m_pipe == NULL) {
+        g_warning("failed to create pipe");
+#ifdef XP_WIN
+        rc = MAKE_HRESULT(1, FACILITY_CREATE_RED_PIPE, GetLastError());
+#endif
+        this->StopClient();
+    }
 
     return rc;
 }

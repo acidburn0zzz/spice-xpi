@@ -66,7 +66,12 @@ extern "C" {
 #include <fstream>
 #include <set>
 
+#if defined(XP_UNIX)
 #include "controller-unix.h"
+#endif
+#if defined(XP_WIN)
+#include "controller-win.h"
+#endif
 #include "plugin.h"
 #include "nsScriptablePeer.h"
 
@@ -187,7 +192,13 @@ nsPluginInstance::nsPluginInstance(NPP aInstance):
     g_type_init();
 #endif
 
+#if defined(XP_WIN)
+    m_external_controller = new SpiceControllerWin(this);
+#elif defined(XP_UNIX)
     m_external_controller = new SpiceControllerUnix(this);
+#else
+#error "Unknown OS, no controller implementation"
+#endif
 }
 
 nsPluginInstance::~nsPluginInstance()
