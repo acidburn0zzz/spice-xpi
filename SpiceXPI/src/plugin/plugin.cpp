@@ -61,21 +61,6 @@ extern "C" {
 #include <signal.h>
 }
 
-
-// for plugins
-#ifndef XP_UNIX
-#include <nsString.h>
-#include <nsIDOMNavigator.h>
-#include <nsIDOMPluginArray.h>
-#include <nsIDOMPlugin.h>
-#include <nsIDOMMimeType.h>
-#include <nsIObserverService.h>
-#include <plugin/nsIPluginHost.h>
-
-static NS_DEFINE_CID(kPluginManagerCID, NS_PLUGINMANAGER_CID);
-#endif
-
-
 #include <cstring>
 #include <fstream>
 #include <set>
