@@ -28,6 +28,11 @@ PKG_CHECK_MODULES(GLIB, glib-2.0)
 AC_SUBST(GLIB_CFLAGS)
 AC_SUBST(GLIB_LIBS)
 
+AC_ARG_ENABLE([xpi],
+  [AS_HELP_STRING([--enable-xpi],
+                  [Enable compilation of an xpi package])],
+  [], [enable_xpi=no])
+if test x"$enable_xpi" != xno; then
 PKG_CHECK_MODULES(XUL, libxul-embedding >= 10)
 AC_SUBST(XUL_CFLAGS)
 AC_SUBST(XUL_LIBS)
@@ -36,6 +41,8 @@ XUL_INCLUDEDIR=`pkg-config --variable=includedir libxul`
 XUL_IDLDIR=`pkg-config --variable=idldir libxul`
 AC_SUBST(XUL_INCLUDEDIR)
 AC_SUBST(XUL_IDLDIR)
+fi
+AM_CONDITIONAL([BUILD_XPI], [test x"$enable_xpi" != xno])
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
@@ -65,6 +72,7 @@ AC_MSG_NOTICE([
         XUL includes:		   ${XUL_INCLUDEDIR}
         XUL IDL files:	           ${XUL_IDLDIR}
         Build test page generator: ${enable_generator}
+        Build XPI package:         ${enable_xpi}
 
         Now type 'make' to build $PACKAGE
 ])

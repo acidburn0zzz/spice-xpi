@@ -36,7 +36,6 @@ libnsISpicec_la_SOURCES =			\
 	npn_gate.cpp				\
 	npp_gate.cpp				\
 	npplat.h				\
-	nsISpicec.h				\
 	nsISpicec.idl				\
 	nsScriptablePeer.cpp			\
 	nsScriptablePeer.h			\
@@ -46,6 +45,11 @@ libnsISpicec_la_SOURCES =			\
 	plugin.h				\
 	pluginbase.cpp				\
 	pluginbase.h				\
+	$(NULL)
+
+if BUILD_XPI
+libnsISpicec_la_SOURCES +=			\
+	nsISpicec.h				\
 	$(NULL)
 
 nsISpicec.h: nsISpicec.idl
@@ -68,3 +72,4 @@ CLEANFILES =					\
 	xpidlyacc.py				\
 	xpidlyacc.pyc				\
 	xpidl_debug
+endif

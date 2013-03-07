@@ -1,5 +1,6 @@
 SUBDIRS = src
 
+if BUILD_XPI
 spicedatadir = $(datadir)/spice
 
 DISTDIR = dist
@@ -18,3 +19,4 @@ SpiceXPI.xpi: $(srcdir)/src/install.rdf src/plugin/nsISpicec.xpt src/plugin/.lib
 
 distclean-local:
 	rm -rf $(DISTDIR)
+endif
