@@ -118,7 +118,5 @@ AC_MSG_NOTICE([
         XUL IDL files:	           ${XUL_IDLDIR}
         Build test page generator: ${enable_generator}
 
-        Red target:                ${red_target}
-
         Now type 'make' to build $PACKAGE
 ])
