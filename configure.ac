@@ -31,16 +31,6 @@ AC_SUBST(GLIB_LIBS)
 PKG_CHECK_MODULES(XUL, libxul-embedding >= 10)
 AC_SUBST(XUL_CFLAGS)
 AC_SUBST(XUL_LIBS)
-# Find xpidl
-XPIDL=`pkg-config --variable=libdir libxul`/xpidl
-AM_CONDITIONAL([HAVE_XPIDL], [test -x "$XPIDL"])
-AC_SUBST(XPIDL)
-
-if ! test -x "$XPIDL"; then
-  AM_PATH_PYTHON
-  AC_CHECK_FILE([`pkg-config --variable=sdkdir libxul`/sdk/bin/header.py])
-  AC_CHECK_FILE([`pkg-config --variable=sdkdir libxul`/sdk/bin/typelib.py])
-fi
 
 XUL_INCLUDEDIR=`pkg-config --variable=includedir libxul`
 XUL_IDLDIR=`pkg-config --variable=idldir libxul`
@@ -72,7 +62,6 @@ AC_MSG_NOTICE([
 
         prefix:                    ${prefix}
         compiler:                  ${CC}
-        xpidl:			   ${XPIDL}
         XUL includes:		   ${XUL_INCLUDEDIR}
         XUL IDL files:	           ${XUL_IDLDIR}
         Build test page generator: ${enable_generator}

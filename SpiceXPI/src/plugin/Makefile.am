@@ -44,19 +44,11 @@ libnsISpicec_la_SOURCES =			\
 	pluginbase.h				\
 	$(NULL)
 
-if HAVE_XPIDL
-nsISpicec.h: nsISpicec.idl
-	$(AM_V_GEN)$(XPIDL) -m header -I $(SDK_INCLUDE_DIR) $<
-
-nsISpicec.xpt: nsISpicec.idl
-	$(AM_V_GEN)$(XPIDL) -m typelib -I $(SDK_INCLUDE_DIR) $<
-else
 nsISpicec.h: nsISpicec.idl
 	$(AM_V_GEN)$(PYTHON) `pkg-config --variable=sdkdir libxul`/sdk/bin/header.py --cachedir . -I $(SDK_INCLUDE_DIR) $< -o $@
 
 nsISpicec.xpt: nsISpicec.idl
 	$(AM_V_GEN)$(PYTHON) `pkg-config --variable=sdkdir libxul`/sdk/bin/typelib.py --cachedir . -I $(SDK_INCLUDE_DIR) $< -o $@
-endif
 
 BUILT_SOURCES =					\
 	nsISpicec.h				\
