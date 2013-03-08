@@ -103,17 +103,10 @@ namespace {
     }
 }
 
-#ifdef NPAPI_USE_CONSTCHARS
 const char *NPP_GetMIMEDescription(void)
 {
     return const_cast<char *>(MIME_TYPES_DESCRIPTION.c_str());
 }
-#else
-char *NPP_GetMIMEDescription(void)
-{
-    return strdup(MIME_TYPES_DESCRIPTION.c_str());
-}
-#endif
 
 //////////////////////////////////////
 //

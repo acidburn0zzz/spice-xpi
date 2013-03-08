@@ -45,11 +45,7 @@
 #include "config.h"
 
 #include "npapi.h"
-#ifdef HAVE_XUL191
-#  include "npfunctions.h"
-#else
-#  include "npupp.h"
-#endif
+#include "npfunctions.h"
 
 // For 1.9 compatibility
 // ------------------------------------------------
