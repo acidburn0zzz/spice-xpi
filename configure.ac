@@ -93,8 +93,8 @@ m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AC_ARG_ENABLE([generator],
   [AS_HELP_STRING([--enable-generator],
                   [Enable compilation of a test page generator])],
-  [enable_generator=true], [enable_generator=false])
-AM_CONDITIONAL([BUILD_GENERATOR], [test x$enable_generator = xtrue])
+  [], [enable_generator=no])
+AM_CONDITIONAL([BUILD_GENERATOR], [test x$enable_generator != xno])
 
 AC_OUTPUT([
 Makefile
