@@ -11,7 +11,8 @@
  *   for the specific language governing rights and limitations under the
  *   License.
  *
- *   Copyright 2009-2013, Red Hat Inc.
+ *   Copyright 2009-2011, Red Hat Inc.
+ *   Copyright 2013, Red Hat Inc.
  *   Based on mozilla.org's scriptable plugin example
  *
  *   The Original Code is mozilla.org code.
@@ -41,8 +42,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef SPICE_CONTROLLER_H
-#define SPICE_CONTROLLER_H
+#ifndef SPICE_CONTROLLER_UNIX_H
+#define SPICE_CONTROLLER_UNIX_H
 
 /*
     Basic assumption:
@@ -67,44 +68,30 @@ extern "C" {
 }
 
 #include <spice/controller_prot.h>
+#include "controller.h"
 
 class nsPluginInstance;
 
-class SpiceController
+class SpiceControllerUnix: public SpiceController
 {
 public:
-    SpiceController(nsPluginInstance *aPlugin);
-    virtual ~SpiceController();
+    SpiceControllerUnix(nsPluginInstance *aPlugin);
+    virtual ~SpiceControllerUnix();
 
-    bool StartClient();
-    virtual void StopClient() = 0;
-    void SetFilename(const std::string &name);
-    void SetProxy(const std::string &proxy);
-    int Connect(int nRetries);
-    virtual void Disconnect();
-    virtual uint32_t Write(const void *lpBuffer, uint32_t nBytesToWrite) = 0;
-
-    static int TranslateRC(int nRC);
-
-protected:
-    std::string m_name;
-    std::string m_proxy;
-    GPid m_pid_controller;
-    GOutputStream *m_pipe;
+    virtual void StopClient();
+    virtual uint32_t Write(const void *lpBuffer, uint32_t nBytesToWrite);
+    int Connect(int nRetries) { return SpiceController::Connect(nRetries); };
 
 private:
-    virtual int Connect() = 0;
-    void WaitForPid(GPid pid);
-    virtual void SetupControllerPipe(GStrv &env) = 0;
-    virtual bool CheckPipe() = 0;
-    virtual GStrv GetClientPath(void) = 0;
-    virtual GStrv GetFallbackClientPath(void) = 0;
-    static void ChildExited(GPid pid, gint status, gpointer user_data);
-    static gpointer ClientThread(gpointer data);
+    virtual int Connect();
+    virtual void Disconnect();
+    virtual void SetupControllerPipe(GStrv &env);
+    virtual bool CheckPipe();
+    virtual GStrv GetClientPath(void);
+    virtual GStrv GetFallbackClientPath(void);
 
-    nsPluginInstance *m_plugin;
-
-    GMainLoop *m_child_watch_mainloop;
+    int m_client_socket;
+    std::string m_tmp_dir;
 };
 
-#endif // SPICE_CONTROLLER_H
+#endif // SPICE_CONTROLLER_UNIX_H

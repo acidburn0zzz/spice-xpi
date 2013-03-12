@@ -66,7 +66,7 @@ extern "C" {
 #include <fstream>
 #include <set>
 
-#include "controller.h"
+#include "controller-unix.h"
 #include "plugin.h"
 #include "nsScriptablePeer.h"
 
@@ -172,7 +172,6 @@ void NS_DestroyPluginInstance(nsPluginInstanceBase *aPlugin)
 nsPluginInstance::nsPluginInstance(NPP aInstance):
     nsPluginInstanceBase(),
     m_connected_status(-2),
-    m_external_controller(this),
     m_instance(aInstance),
     m_initialized(true),
     m_window(NULL),
@@ -187,6 +186,8 @@ nsPluginInstance::nsPluginInstance(NPP aInstance):
 #if !GLIB_CHECK_VERSION(2, 35, 0)
     g_type_init();
 #endif
+
+    m_external_controller = new SpiceControllerUnix(this);
 }
 
 nsPluginInstance::~nsPluginInstance()
@@ -197,6 +198,7 @@ nsPluginInstance::~nsPluginInstance()
     // and zero its m_plugin member
     if (m_scriptable_peer)
         NPN_ReleaseObject(m_scriptable_peer);
+    delete(m_external_controller);
 }
 
 NPBool nsPluginInstance::init(NPWindow *aWindow)
@@ -222,7 +224,7 @@ NPBool nsPluginInstance::init(NPWindow *aWindow)
     m_color_depth.clear();
     m_disable_effects.clear();
     m_proxy.clear();
-    m_external_controller.SetProxy(std::string());
+    m_external_controller->SetProxy(std::string());
 
     m_fullscreen = false;
     m_smartcard = false;
@@ -527,12 +529,12 @@ char *nsPluginInstance::GetProxy() const
 void nsPluginInstance::SetProxy(const char *aProxy)
 {
     m_proxy = aProxy;
-    m_external_controller.SetProxy(m_proxy);
+    m_external_controller->SetProxy(m_proxy);
 }
 
 void nsPluginInstance::WriteToPipe(const void *data, uint32_t size)
 {
-    m_external_controller.Write(data, size);
+    m_external_controller->Write(data, size);
 }
 
 void nsPluginInstance::SendInit()
@@ -629,12 +631,12 @@ void nsPluginInstance::Connect()
         return;
     }
 
-    if (!m_external_controller.StartClient()) {
+    if (!m_external_controller->StartClient()) {
         g_critical("failed to start SPICE client");
         return;
     }
 
-    if (m_external_controller.Connect(10) != 0)
+    if (m_external_controller->Connect(10) != 0)
     {
         g_critical("could not connect to spice client controller");
         return;
@@ -682,7 +684,7 @@ void nsPluginInstance::Show()
 
 void nsPluginInstance::Disconnect()
 {
-    m_external_controller.StopClient();
+    m_external_controller->StopClient();
 }
 
 void nsPluginInstance::ConnectedStatus(int32_t *retval)
@@ -756,11 +758,11 @@ void nsPluginInstance::CallOnDisconnected(int code)
 
 void nsPluginInstance::OnSpiceClientExit(int exit_code)
 {
-    m_connected_status = m_external_controller.TranslateRC(exit_code);
+    m_connected_status = m_external_controller->TranslateRC(exit_code);
     if (!getenv("SPICE_XPI_DEBUG"))
     {
         CallOnDisconnected(exit_code);
-        m_external_controller.Disconnect();
+        m_external_controller->Disconnect();
     }
 
     RemoveTrustStoreFile();

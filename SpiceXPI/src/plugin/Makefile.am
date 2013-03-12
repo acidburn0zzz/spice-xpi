@@ -26,8 +26,10 @@ libnsISpicec_la_SOURCES =			\
 	$(top_srcdir)/common/rederrorcodes.h	\
 	glib-compat.c				\
 	glib-compat.h				\
+	controller.cpp				\
 	controller.h				\
 	controller-unix.cpp			\
+	controller-unix.h			\
 	npapi/npapi.h				\
 	npapi/npfunctions.h			\
 	npapi/npruntime.h			\

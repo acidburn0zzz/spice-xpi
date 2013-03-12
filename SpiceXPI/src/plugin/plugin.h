@@ -190,7 +190,7 @@ private:
     bool RemoveTrustStoreFile();
 
     int32_t m_connected_status;
-    SpiceController m_external_controller;
+    SpiceController *m_external_controller;
 
     NPP m_instance;
     NPBool m_initialized;

@@ -40,6 +40,7 @@
  *   the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+#include "config.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -57,11 +58,11 @@ extern "C" {
 }
 
 #include "rederrorcodes.h"
-#include "controller.h"
+#include "controller-unix.h"
 #include "plugin.h"
 
-SpiceController::SpiceController(nsPluginInstance *aPlugin):
-    m_plugin(aPlugin),
+SpiceControllerUnix::SpiceControllerUnix(nsPluginInstance *aPlugin):
+    SpiceController(aPlugin),
     m_client_socket(-1)
 {
     // create temporary directory in /tmp
@@ -69,7 +70,7 @@ SpiceController::SpiceController(nsPluginInstance *aPlugin):
     m_tmp_dir = mkdtemp(tmp_dir);
 }
 
-SpiceController::~SpiceController()
+SpiceControllerUnix::~SpiceControllerUnix()
 {
     g_debug(G_STRFUNC);
     Disconnect();
@@ -78,17 +79,7 @@ SpiceController::~SpiceController()
     rmdir(m_tmp_dir.c_str());
 }
 
-void SpiceController::SetFilename(const std::string &name)
-{
-    m_name = name;
-}
-
-void SpiceController::SetProxy(const std::string &proxy)
-{
-    m_proxy = proxy;
-}
-
-int SpiceController::Connect()
+int SpiceControllerUnix::Connect()
 {
     // check, if we have a filename for socket to create
     if (m_name.empty())
@@ -122,20 +113,8 @@ int SpiceController::Connect()
     return rc;
 }
 
-int SpiceController::Connect(const int nRetries)
+bool SpiceControllerUnix::CheckPipe()
 {
-    int rc = -1;
-    int sleep_time = 0;
-
-    // try to connect for specified count
-    for (int i = 0; rc != 0 && i < nRetries; ++i)
-    {
-        rc = Connect();
-        g_usleep(sleep_time * G_USEC_PER_SEC);
-        ++sleep_time;
-    }
-
-    return rc;
 }
 
 GStrv SpiceControllerUnix::GetClientPath()
@@ -152,7 +131,7 @@ GStrv SpiceControllerUnix::GetFallbackClientPath()
     return g_strdupv((GStrv)fallback_argv);
 }
 
-void SpiceController::SetupControllerPipe(GStrv &env)
+void SpiceControllerUnix::SetupControllerPipe(GStrv &env)
 {
     std::string socket_file(this->m_tmp_dir);
     socket_file += "/spice-xpi";
@@ -162,18 +141,13 @@ void SpiceController::SetupControllerPipe(GStrv &env)
     env = g_environ_setenv(env, "SPICE_XPI_SOCKET", socket_file.c_str(), TRUE);
 }
 
-void SpiceController::Disconnect()
+void SpiceControllerUnix::StopClient()
 {
-    // close the socket
-    close(m_client_socket);
-    m_client_socket = -1;
-
-    // delete the temporary file, which is used for the socket
-    unlink(m_name.c_str());
-    m_name.clear();
+    if (m_pid_controller > 0)
+        kill(-m_pid_controller, SIGTERM);
 }
 
-uint32_t SpiceController::Write(const void *lpBuffer, uint32_t nBytesToWrite)
+uint32_t SpiceControllerUnix::Write(const void *lpBuffer, uint32_t nBytesToWrite)
 {
     ssize_t len = send(m_client_socket, lpBuffer, nBytesToWrite, 0);
 
@@ -186,164 +160,13 @@ uint32_t SpiceController::Write(const void *lpBuffer, uint32_t nBytesToWrite)
     return len;
 }
 
-void SpiceController::ChildExited(GPid pid, gint status, gpointer user_data)
+void SpiceControllerUnix::Disconnect()
 {
-    SpiceController *fake_this = (SpiceController *)user_data;
+    // close the socket
+    close(m_client_socket);
+    m_client_socket = -1;
 
-    g_message("Client with pid %p exited", pid);
-
-    g_main_loop_quit(fake_this->m_child_watch_mainloop);
-    /* FIXME: we are not in the main thread!! */
-    fake_this->m_plugin->OnSpiceClientExit(status);
+    // delete the temporary file, which is used for the socket
+    unlink(m_name.c_str());
+    m_name.clear();
 }
-
-void SpiceController::WaitForPid(GPid pid)
-{
-    GMainContext *context;
-    GSource *source;
-
-    context = g_main_context_new();
-
-    m_child_watch_mainloop = g_main_loop_new(context, FALSE);
-    source = g_child_watch_source_new(pid);
-    g_source_set_callback(source, (GSourceFunc)ChildExited, this, NULL);
-    g_source_attach(source, context);
-
-    g_main_loop_run(m_child_watch_mainloop);
-
-    g_main_loop_unref(m_child_watch_mainloop);
-    g_main_context_unref(context);
-
-    g_spawn_close_pid(pid);
-    if (pid == m_pid_controller)
-        m_pid_controller = 0;
-}
-
-
-gpointer SpiceController::ClientThread(gpointer data)
-{
-    SpiceController *fake_this = (SpiceController *)data;
-    gchar **env = g_get_environ();
-    GPid pid;
-    gboolean spawned = FALSE;
-    GError *error = NULL;
-    GStrv client_argv;
-
-    // Setup client environment
-    fake_this->SetupControllerPipe(env);
-    if (!fake_this->m_proxy.empty())
-        env = g_environ_setenv(env, "SPICE_PROXY", fake_this->m_proxy.c_str(), TRUE);
-
-    // Try to spawn main client
-    client_argv = fake_this->GetClientPath();
-    if (client_argv != NULL) {
-        char *argv_str = g_strjoinv(" ", client_argv);
-        g_warning("main client cmdline: %s", argv_str);
-        g_free(argv_str);
-
-        spawned = g_spawn_async(NULL,
-                                client_argv, env,
-                                G_SPAWN_DO_NOT_REAP_CHILD,
-                                NULL, NULL, /* child_func, child_arg */
-                                &pid, &error);
-        if (error != NULL) {
-            g_warning("failed to start %s: %s", client_argv[0], error->message);
-            g_warn_if_fail(spawned == FALSE);
-            g_clear_error(&error);
-        }
-        g_strfreev(client_argv);
-    }
-
-    if (!spawned) {
-        // Fallback client for backward compatibility
-        GStrv fallback_argv;
-        char *argv_str;
-        fallback_argv = fake_this->GetFallbackClientPath();
-        if (fallback_argv == NULL) {
-            goto out;
-        }
-
-        argv_str = g_strjoinv(" ", fallback_argv);
-        g_warning("fallback client cmdline: %s", argv_str);
-        g_free(argv_str);
-
-        g_message("failed to run preferred client, running fallback client instead");
-        spawned = g_spawn_async(NULL, fallback_argv, env,
-                                G_SPAWN_DO_NOT_REAP_CHILD,
-                                NULL, NULL, /* child_func, child_arg */
-                                &pid, &error);
-        if (error != NULL) {
-            g_warning("failed to start %s: %s", fallback_argv[0], error->message);
-            g_warn_if_fail(spawned == FALSE);
-            g_clear_error(&error);
-        }
-    }
-
-out:
-    g_strfreev(env);
-
-    if (!spawned) {
-        g_critical("ERROR failed to run spicec fallback");
-        return NULL;
-    }
-
-#ifdef XP_UNIX
-    fake_this->m_pid_controller = pid;
-#endif
-    fake_this->WaitForPid(pid);
-
-    return NULL;
-}
-
-bool SpiceController::StartClient()
-{
-    GThread *thread;
-
-    thread = g_thread_new("spice-xpi client thread", ClientThread, this);
-
-    return (thread != NULL);
-}
-
-void SpiceController::StopClient()
-{
-    if (m_pid_controller > 0)
-        kill(-m_pid_controller, SIGTERM);
-}
-
-int SpiceController::TranslateRC(int nRC)
-{
-    switch (nRC)
-    {
-    case SPICEC_ERROR_CODE_SUCCESS:
-        return 0;
-
-    case SPICEC_ERROR_CODE_GETHOSTBYNAME_FAILED:
-        return RDP_ERROR_CODE_HOST_NOT_FOUND;
-
-    case SPICEC_ERROR_CODE_CONNECT_FAILED:
-        return RDP_ERROR_CODE_WINSOCK_CONNECT_FAILED;
-
-    case SPICEC_ERROR_CODE_ERROR:
-    case SPICEC_ERROR_CODE_SOCKET_FAILED:
-        return RDP_ERROR_CODE_INTERNAL_ERROR;
-
-    case SPICEC_ERROR_CODE_RECV_FAILED:
-        return RDP_ERROR_RECV_WINSOCK_FAILED;
-
-    case SPICEC_ERROR_CODE_SEND_FAILED:
-        return RDP_ERROR_SEND_WINSOCK_FAILED;
-
-    case SPICEC_ERROR_CODE_NOT_ENOUGH_MEMORY:
-        return RDP_ERROR_CODE_OUT_OF_MEMORY;
-
-    case SPICEC_ERROR_CODE_AGENT_TIMEOUT:
-        return RDP_ERROR_CODE_TIMEOUT;
-
-    case SPICEC_ERROR_CODE_AGENT_ERROR:
-        return RDP_ERROR_CODE_INTERNAL_ERROR;
-
-    default:
-        return RDP_ERROR_CODE_INTERNAL_ERROR;
-    }
-}
-
