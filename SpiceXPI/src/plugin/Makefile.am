@@ -8,7 +8,7 @@ plugindir=$(extensiondir)/plugins
 
 plugin_LTLIBRARIES = libnsISpicec.la
 
-libnsISpicec_la_LDFLAGS = -avoid-version -module
+libnsISpicec_la_LDFLAGS = -avoid-version -module -no-undefined
 libnsISpicec_la_CPPFLAGS =			\
 	-I$(top_srcdir)/common			\
 	-I$(srcdir)/npapi			\
@@ -28,8 +28,6 @@ libnsISpicec_la_SOURCES =			\
 	glib-compat.h				\
 	controller.cpp				\
 	controller.h				\
-	controller-unix.cpp			\
-	controller-unix.h			\
 	npapi/npapi.h				\
 	npapi/npfunctions.h			\
 	npapi/npruntime.h			\
@@ -48,6 +46,25 @@ libnsISpicec_la_SOURCES =			\
 	pluginbase.cpp				\
 	pluginbase.h				\
 	$(NULL)
+
+if OS_LINUX
+libnsISpicec_la_SOURCES +=			\
+	controller-unix.cpp			\
+	controller-unix.h			\
+	$(NULL)
+endif
+
+if OS_WINDOWS
+.rc.lo:
+	$(LIBTOOL) --tag=RC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(WINDRES) $(RCFLAGS) -i $< -o $@
+
+libnsISpicec_la_SOURCES +=			\
+	resource.rc				\
+	$(NULL)
+
+.rc.$(OBJEXT):
+	$(AM_V_GEN)$(WINDRES) $(RCFLAGS) -i $< -o $@
+endif
 
 if BUILD_XPI
 libnsISpicec_la_SOURCES +=			\

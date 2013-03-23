@@ -13,9 +13,26 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_CANONICAL_HOST
 AC_PROG_LIBTOOL
+LT_LANG([Windows Resource])
 AM_PROG_CC_C_O
 
-AC_DEFINE([XP_UNIX], 1, [Building Linux plugin])
+AC_MSG_CHECKING([operating system])
+case $host in
+*-linux*)
+        AC_MSG_RESULT([Linux])
+        backend="linux"
+        AC_DEFINE([XP_UNIX], 1, [Building Linux plugin])
+        ;;
+*-mingw*)
+        AC_MSG_RESULT([Windows])
+        backend="windows"
+        AC_CHECK_TOOL([WINDRES], [windres], [no])
+        AC_DEFINE([XP_WIN], 1, [Building Windows plugin])
+        ;;
+esac
+
+AM_CONDITIONAL([OS_LINUX], [test "x$backend" = xlinux])
+AM_CONDITIONAL([OS_WINDOWS], [test "x$backend" = xwindows])
 
 dnl =========================================================================
 dnl Check deps
