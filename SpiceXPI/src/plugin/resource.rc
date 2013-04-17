@@ -20,7 +20,7 @@ BEGIN
             VALUE "FileVersion", "2, 8, 0, 0"
             VALUE "InternalName", "SpiceXPI"
             VALUE "LegalCopyright", "Fedora"
-            VALUE "OriginalFilename", "nsISpicec.dll"
+            VALUE "OriginalFilename", "npSpiceConsole.dll"
             VALUE "ProductName", "Spice XPI"
             VALUE "ProductVersion", "2, 8, 0, 0"
             VALUE "MIMEType", "application/x-spice"
