@@ -50,6 +50,7 @@ AC_ARG_ENABLE([xpi],
                   [Enable compilation of an xpi package])],
   [], [enable_xpi=no])
 if test x"$enable_xpi" != xno; then
+AM_PATH_PYTHON
 PKG_CHECK_MODULES(XUL, libxul-embedding >= 10)
 AC_SUBST(XUL_CFLAGS)
 AC_SUBST(XUL_LIBS)
