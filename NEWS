@@ -16,3 +16,11 @@ spice-xpi 2.8
 - added tcp ports validation support
 - switched from log4cpp to glib debug messages
 - introduced test page generator
+
+spice-xpi 2.8.90
+================
+
+- added Windows build support using MinGW
+- added proxy support
+- dropped usage of nspr
+- made xulrunner dependency optional

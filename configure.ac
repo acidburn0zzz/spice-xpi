@@ -1,5 +1,5 @@
 AC_PREREQ([2.57])
-AC_INIT(spice-xpi, [2.9pre], [], spice-xpi)
+AC_INIT(spice-xpi, [2.8.90], [], spice-xpi)
 
 AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER([config.h])
