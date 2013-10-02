@@ -251,7 +251,7 @@ std::string Generator::attributeToHtmlElement(const Attribute &attr)
     std::string id = lowerString(attr.getIdentifier());
     if (id == "truststore") {
         ss << "<textarea id=\"" << attr.getIdentifier()
-           << "\" cols=\"66\" rows=\"33\" "
+           << "\" cols=\"80\" rows=\"10\" "
            << (attributeEnabled(attr) ? "" : "disabled")
            << "/></textarea>";
     } else {
