@@ -47,6 +47,7 @@ private:
     static std::string attributeToHtmlElement(const Attribute &attr);
     static bool attributeEnabled(const Attribute &attr);
     static bool methodEnabled(const Method &method, const Method::MethodParam &param);
+    static bool generateConnectVarsParse(const Attribute &attr);
 
 private:
     std::list<Attribute> m_attributes;

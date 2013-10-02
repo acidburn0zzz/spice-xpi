@@ -157,11 +157,14 @@ void Generator::generateConnectVars()
     for (it = m_attributes.begin(); it != m_attributes.end(); ++it) {
         std::cout << "    embed." << it->getIdentifier() << " = "
                   << "document.getElementById(\""
-                  << it->getIdentifier() << "Toggled\").checked ? "
-                  << "document.getElementById(\""
+                  << it->getIdentifier() << "Toggled\").checked ? ";
+        bool generated_cast = generateConnectVarsParse(*it);
+        std::cout << "document.getElementById(\""
                   << it->getIdentifier() << "\")."
-                  << (it->getType() == Token::T_BOOLEAN ? "checked" : "value")
-                  << " : \"\";\n";
+                  << (it->getType() == Token::T_BOOLEAN ? "checked" : "value");
+        if (generated_cast)
+            std::cout << ")";
+        std::cout << " : \"\";\n";
     }
     std::cout << "}\n\n</script>\n\n";
 }
@@ -279,4 +282,27 @@ bool Generator::methodEnabled(const Method &method, const Method::MethodParam &p
     std::string id(lowerString(method.getIdentifier() + param.getIdentifier()));
     std::set<std::string>::iterator found = s_default_methods.find(id);
     return found != s_default_methods.end();
+}
+
+bool Generator::generateConnectVarsParse(const Attribute &attr)
+{
+    switch (attr.getType()) {
+    case Token::T_FLOAT:
+    case Token::T_DOUBLE:
+        std::cout << "parseFloat(";
+        return true;
+    case Token::T_UNSIGNED:
+    case Token::T_SHORT:
+    case Token::T_LONG:
+    case Token::T_LONG_LONG:
+    case Token::T_OCTET:
+    case Token::T_NUMBER:
+    case Token::T_UNSIGNED_SHORT:
+    case Token::T_UNSIGNED_LONG:
+    case Token::T_UNSIGNED_LONG_LONG:
+        std::cout << "parseInt(";
+        return true;
+    }
+
+    return false;
 }
