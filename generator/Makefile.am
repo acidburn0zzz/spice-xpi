@@ -1,5 +1,5 @@
 if BUILD_GENERATOR
-bin_PROGRAMS                = spice-xpi-generator
+noinst_PROGRAMS             = spice-xpi-generator
 spice_xpi_generator_SOURCES = \
 	attribute.h           \
 	generator.cpp         \
