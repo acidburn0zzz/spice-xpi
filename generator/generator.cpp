@@ -111,7 +111,7 @@ void Generator::generateHeader()
               << "    msgCell.innerHTML = message;\n\n"
               << "    newRow.appendChild(tsCell);\n"
               << "    newRow.appendChild(msgCell);\n"
-              << "    log.appendChild(newRow);\n}\n\n"
+              << "    log.insertBefore(newRow, log.firstChild);\n}\n\n"
               << "function setLanguageStrings()\n{\n"
               << "    section = document.getElementById(\"SetLanguageStringssectionToggled\").checked ?\n"
               << "        document.getElementById(\"SetLanguageStringssection\").value : \"\";\n"
