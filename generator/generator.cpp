@@ -50,10 +50,10 @@ void Generator::init()
     s_default_methods.insert("setlanguagestringssection");
     s_default_methods.insert("setlanguagestringslang");
     s_default_methods.insert("setusbfilterfilter");
-    s_default_attribute_values["adminconsole"] = " checked";
-    s_default_attribute_values["hotkey"] = " value=\"toggle-fullscreen=shift+f11," \
-        "release-cursor=shift+f12,smartcard-insert=shift+f8,smartcard-remove=shift+f9\"";
-    s_default_attribute_values["usblistenport"] = " value=\"32023\"";
+    s_default_attribute_values["adminconsole"] = "checked ";
+    s_default_attribute_values["hotkey"] = "value=\"toggle-fullscreen=shift+f11," \
+        "release-cursor=shift+f12,smartcard-insert=shift+f8,smartcard-remove=shift+f9\" ";
+    s_default_attribute_values["usblistenport"] = "value=\"32023\" ";
 }
 
 void Generator::generate()
@@ -199,7 +199,7 @@ void Generator::generateContent()
                       << itm->getIdentifier() << itp->getIdentifier()
                       << "Toggled', '" << itm->getIdentifier()
                       << itp->getIdentifier() << "')\""
-                      << (methodEnabled(*itm, *itp) ? "checked" : "")
+                      << (methodEnabled(*itm, *itp) ? " checked" : "")
                       << "/></td>\n<td>" << splitIdentifier(itm->getIdentifier())
                       << " - " << splitIdentifier(itp->getIdentifier()) << "</td>\n"
                       << "<td><input id=\"" << itm->getIdentifier() << itp->getIdentifier()
