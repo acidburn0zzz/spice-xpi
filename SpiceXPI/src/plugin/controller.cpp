@@ -64,7 +64,7 @@ SpiceController::SpiceController(nsPluginInstance *aPlugin):
 
 SpiceController::~SpiceController()
 {
-    g_debug(G_STRFUNC);
+    g_debug("%s", G_STRFUNC);
     Disconnect();
 }
 

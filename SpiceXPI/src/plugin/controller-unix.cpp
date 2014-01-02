@@ -72,7 +72,7 @@ SpiceControllerUnix::SpiceControllerUnix(nsPluginInstance *aPlugin):
 
 SpiceControllerUnix::~SpiceControllerUnix()
 {
-    g_debug(G_STRFUNC);
+    g_debug("%s", G_STRFUNC);
     Disconnect();
 
     // delete the temporary directory used for a client socket
