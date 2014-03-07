@@ -103,6 +103,8 @@ int SpiceControllerUnix::Connect()
     int rc = connect(m_client_socket, (struct sockaddr *) &remote, strlen(remote.sun_path) + sizeof(remote.sun_family));
     if (rc == -1)
     {
+        if (errno == EISCONN)
+            rc = 1;
         g_critical("controller connect: %s", g_strerror(errno));
     }
     else
