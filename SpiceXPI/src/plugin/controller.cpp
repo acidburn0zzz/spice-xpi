@@ -88,14 +88,13 @@ void SpiceController::SetProxy(const std::string &proxy)
 int SpiceController::Connect(const int nRetries)
 {
     int rc = -1;
-    int sleep_time = 0;
+    int sleep_time = 1;
 
     // try to connect for specified count
     for (int i = 0; rc != 0 && i < nRetries; ++i)
     {
         rc = Connect();
         g_usleep(sleep_time * G_USEC_PER_SEC);
-        ++sleep_time;
     }
     if (rc != 0) {
         g_warning("error connecting");
